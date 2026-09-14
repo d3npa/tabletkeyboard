@@ -70,8 +70,6 @@ A thin `Makefile` wraps the same flow: `make`, `make test`, `make lint`,
 `make install PREFIX=/usr`, `make clean` (`make help` lists the overridable
 variables).
 
-Slackware package: `cd packaging/slackware && ./tabletkeyboard.SlackBuild`.
-
 ## Run
 
 ```sh
