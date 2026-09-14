@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "ui/themepainter.h"
 
 #include <QFontMetricsF>
@@ -18,11 +20,6 @@ QColor ThemePainter::color(const QString &value) const
 void ThemePainter::paintBackground(QPainter &painter, const QRect &rect) const
 {
     painter.fillRect(rect, color(theme_.windowBg));
-}
-
-void ThemePainter::paintBar(QPainter &painter, const QRect &rect) const
-{
-    painter.fillRect(rect, color(theme_.barBg));
 }
 
 void ThemePainter::paintKey(QPainter &painter, const QRect &rect, const QRect &bodyRect,
@@ -77,10 +74,10 @@ void ThemePainter::paintKey(QPainter &painter, const QRect &rect, const QRect &b
         const QRectF body = QRectF(bodyRect).translated(keyRect.topLeft() - QPointF(rect.topLeft()))
                                    .adjusted(borderWidth / 2.0, borderWidth / 2.0, -borderWidth / 2.0,
                                              -borderWidth / 2.0);
-        const QRectF top(keyRect.x(), keyRect.y(), keyRect.width(), body.top() - keyRect.y() + 1.0);
+        const QRectF topPart(keyRect.x(), keyRect.y(), keyRect.width(), body.top() - keyRect.y() + 1.0);
 
         QPainterPath topPath;
-        topPath.addRoundedRect(top, radius, radius);
+        topPath.addRoundedRect(topPart, radius, radius);
         QPainterPath bodyPath;
         bodyPath.addRoundedRect(body, radius, radius);
         painter.drawPath(topPath.united(bodyPath));

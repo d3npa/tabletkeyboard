@@ -51,7 +51,7 @@ KeyPress   keycode 8  (keysym 0xff2a, Zenkaku_Hankaku)   (spare keycode on Xvfb)
 | Restore on exit | `xmodmap -pke` md5 identical before/after on both machines, including a SIGTERM exit (INT/TERM/HUP handlers installed) |
 | Map reset under us (`XkbMapNotify` from our own remap) | spares re-adopted (without this they were forgotten and leaked — real bug, fixed) |
 | Map reset by someone else (Plasma layout daemon) | spares that no longer hold our keysym are dropped; the pool is rebuilt |
-| **Spare modifier keycodes** | **probe fails**: after remapping an unused keycode to `Shift_L`, `XGetModifierMapping` does not list it (XKB derives modifiers from the compat rules, not from a raw keymap change). The backend therefore uses the *real* modifier keycodes — the fallback the plan allowed. OSK modifiers are pressed and released inside one script, so a physically held modifier is only at risk in the rare case of pressing the same modifier physically while an OSK chord is injected. |
+| **Spare modifier keycodes** | **probe fails**: after remapping an unused keycode to `Shift_L`, `XGetModifierMapping` does not list it (XKB derives modifiers from the compat rules, not from a raw keymap change). The backend therefore always presses modifiers through the *real* keycodes; the probe and the whole spare-modifier path were removed in the 0.1 cleanup, so no code can disagree with this result any more. A modifier keysym tapped as a `type: "key"` is pressed and released like any other tap. OSK modifiers are pressed and released inside one script, so a physically held modifier is only at risk in the rare case of pressing the same modifier physically while an OSK chord is injected. |
 
 ## S3 — focusless floating window — **verified on the target (KWin) and fluxbox**
 
@@ -93,12 +93,12 @@ fluxbox deriving `_NET_WM_STATE_STICKY` from `_NET_WM_DESKTOP=0xFFFFFFFF`, and
   forwarded its arguments to the running instance, which switched layout and
   resized (exit code 0).
 
-## S5 — touch plumbing — **pending on the target**
+## S5 — touch plumbing — **not covered in 0.1**
 
 Widgets do not accept `QTouchEvent`, so Qt synthesizes ordinary mouse events
 from single touches — what `KeyButton` consumes. Multi-touch chords are not part
-of v1. To verify on the device: taps produce one press/release pair, and the X
-input focus does not move (same check as S3).
+of this release. Still to check on the device: taps produce one press/release
+pair, and the X input focus does not move (same check as S3).
 
 ## Extra checks
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "core/layout.h"
 #include "core/keysyms.h"
 
@@ -228,10 +230,10 @@ double Block::widthUnits() const
     return w;
 }
 
-const Layer *Mode::layer(const QString &name) const
+const Layer *Mode::layer(const QString &layerName) const
 {
     for (const Layer &l : layers)
-        if (l.name == name)
+        if (l.name == layerName)
             return &l;
     return nullptr;
 }
@@ -241,10 +243,10 @@ const Layer *Mode::primaryLayer() const
     return layers.isEmpty() ? nullptr : &layers.first();
 }
 
-const Mode *LayoutSet::mode(const QString &name) const
+const Mode *LayoutSet::mode(const QString &modeName) const
 {
     for (const Mode &m : modes)
-        if (m.name == name)
+        if (m.name == modeName)
             return &m;
     return nullptr;
 }

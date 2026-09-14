@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "platform/x11/input_xtest.h"
 
 #include <X11/keysym.h>
@@ -113,6 +115,18 @@ void XTestInputBackend::releaseKeysym(quint32 keysym)
 
 void XTestInputBackend::tapKeysym(quint32 keysym)
 {
+    // A modifier keysym tapped as a key (type "key" in the layout) must not
+    // stay down: press and release it. If a script already holds that family,
+    // leave it alone instead of clobbering the chord.
+    const int family = familyOf(keysym);
+    if (family != NoFamily) {
+        if (!heldFamilies_.contains(family)) {
+            pressFamily(family);
+            releaseFamily(family);
+        }
+        return;
+    }
+
     KeyLocation location;
     if (allocator_.findNatural(keysym, &location)) {
         QVector<int> pressed;
@@ -124,8 +138,8 @@ void XTestInputBackend::tapKeysym(quint32 keysym)
             if (!heldFamilies_.contains(AltGrFamily))
                 pressed.append(AltGrFamily);
         }
-        for (const int family : pressed)
-            pressFamily(family);
+        for (const int pressedFamily : pressed)
+            pressFamily(pressedFamily);
         fakeKey(location.keycode, true);
         fakeKey(location.keycode, false);
         for (int i = pressed.size() - 1; i >= 0; --i)
@@ -165,8 +179,14 @@ bool XTestInputBackend::execute(const KeyScript &script)
 
 void XTestInputBackend::syncKeymap()
 {
+    // The map is about to change under us: release anything we still hold
+    // first, so a held modifier cannot be left logically down (and the
+    // invariant is local to this function, not implied by the callers).
+    const QSet<int> held = heldFamilies_;
+    for (const int family : held)
+        releaseFamily(family);
     allocator_.refresh();
-    heldFamilies_.clear();
+    XFlush(dpy_);
 }
 
 void XTestInputBackend::shutdown()

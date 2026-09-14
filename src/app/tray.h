@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #pragma once
 
 #include <QObject>
@@ -16,6 +18,7 @@ class Tray : public QObject
     Q_OBJECT
 public:
     Tray(App *app, QObject *parent = nullptr);
+    ~Tray() override;
 
     bool available() const { return tray_ != nullptr; }
 

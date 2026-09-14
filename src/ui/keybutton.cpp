@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "ui/keybutton.h"
 #include "core/keystate.h"
 #include "core/keysyms.h"
@@ -43,7 +45,7 @@ QString KeyButton::displayLabel() const
         if (!fnText.isEmpty())
             return fnText;
     }
-    const QString label = key_.label;
+    QString label = key_.label;
     if (machine_->shiftActive() && label.size() == 1 && label.at(0).isLetter())
         return label.toUpper();
     return label;
@@ -53,7 +55,7 @@ QString KeyButton::subLabel() const
 {
     if (key_.shiftedCode == 0)
         return QString();
-    const QString text = displayTextForKeysym(key_.shiftedCode);
+    QString text = displayTextForKeysym(key_.shiftedCode);
     if (text.isEmpty() || text.compare(key_.label, Qt::CaseInsensitive) == 0)
         return QString();
     return text;

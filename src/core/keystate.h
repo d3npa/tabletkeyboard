@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #pragma once
 
 #include "core/action.h"
@@ -54,6 +56,8 @@ public:
 
     void setZenkakuOnLangSwitch(bool on) { zenkakuOnLangSwitch_ = on; }
     void setStickyTimeoutMs(int ms) { stickyTimeoutMs_ = ms; }
+    // Test seams: the production values are the member initialisers below
+    // (450/55 ms repeat, 450 ms long press); they are not settings.
     void setRepeatTiming(int delayMs, int intervalMs);
     void setLongPressMs(int ms) { longPressMs_ = ms; }
 

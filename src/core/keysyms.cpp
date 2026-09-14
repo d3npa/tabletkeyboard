@@ -1,17 +1,23 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "core/keysyms.h"
 
 namespace osk {
 
-QStringList modifierIds()
+const QStringList &modifierIds()
 {
-    return { QStringLiteral("ctrl"),  QStringLiteral("shift"), QStringLiteral("alt"),
-             QStringLiteral("super"), QStringLiteral("altgr") };
+    static const QStringList ids = { QStringLiteral("ctrl"), QStringLiteral("shift"), QStringLiteral("alt"),
+                                     QStringLiteral("super"), QStringLiteral("altgr") };
+    return ids;
 }
 
-QStringList allModifierIds()
+const QStringList &allModifierIds()
 {
-    QStringList ids = modifierIds();
-    ids.append(QStringLiteral("fn"));
+    static const QStringList ids = []() {
+        QStringList all = modifierIds();
+        all.append(QStringLiteral("fn"));
+        return all;
+    }();
     return ids;
 }
 
@@ -42,9 +48,9 @@ QString displayTextForKeysym(quint32 keysym)
     if (keysym == 0x20ac)
         return QStringLiteral("€");
     if (keysym >= 0x20 && keysym <= 0x7e)
-        return QString(QChar(static_cast<char>(keysym)));
+        return QString(QChar(ushort(keysym)));
     if (keysym >= 0xa0 && keysym <= 0xff)
-        return QString(QChar(static_cast<char>(keysym)));
+        return QString(QChar(ushort(keysym)));
     if (keysym >= 0x01000000 && keysym <= 0x0010ffff) {
         const uint cp = keysym - 0x01000000;
         if (cp == 0)

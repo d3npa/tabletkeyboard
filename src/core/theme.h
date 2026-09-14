@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #pragma once
 
 #include <QJsonObject>
@@ -43,6 +45,51 @@ struct ThemeSpec
 
     static bool fromJson(const QJsonObject &obj, ThemeSpec *out, QString *error);
     static bool loadFile(const QString &path, ThemeSpec *out, QString *error);
+};
+
+// The JSON fields of a theme, shared by ThemeSpec::fromJson() and
+// Lint::check(): a colour or metric added here is parsed and validated in one
+// place, so a forgotten field cannot slip past the linter.
+struct ThemeColorField
+{
+    const char *name; // JSON key inside "colors"
+    QString ThemeSpec::*member;
+    bool optional = false; // an empty value is allowed (key_mid)
+};
+
+struct ThemeMetricField
+{
+    const char *name; // JSON key inside "metrics"
+    int ThemeSpec::*member;
+    int minValue;
+};
+
+inline constexpr ThemeColorField themeColorFields[] = {
+    { "key_top", &ThemeSpec::keyTop },
+    { "key_bottom", &ThemeSpec::keyBottom },
+    { "key_mid", &ThemeSpec::keyMid, true },
+    { "key_border", &ThemeSpec::keyBorder },
+    { "key_text", &ThemeSpec::keyText },
+    { "key_pressed_top", &ThemeSpec::keyPressedTop },
+    { "key_pressed_bottom", &ThemeSpec::keyPressedBottom },
+    { "key_hover", &ThemeSpec::keyHover },
+    { "mod_active", &ThemeSpec::modActive },
+    { "accent", &ThemeSpec::accent },
+    { "bar_bg", &ThemeSpec::barBg },
+    { "window_bg", &ThemeSpec::windowBg },
+    { "led_on", &ThemeSpec::ledOn },
+    { "led_off", &ThemeSpec::ledOff },
+};
+
+inline constexpr ThemeMetricField themeMetricFields[] = {
+    { "radius", &ThemeSpec::radius, 0 },
+    { "border", &ThemeSpec::border, 0 },
+    { "gap", &ThemeSpec::gap, 0 },
+    { "padding", &ThemeSpec::padding, 0 },
+    { "key_unit", &ThemeSpec::keyUnit, 8 },
+    { "bar_height", &ThemeSpec::barHeight, 8 },
+    { "font_px", &ThemeSpec::fontPx, 6 },
+    { "label_px", &ThemeSpec::labelPx, 5 },
 };
 
 class ThemeLibrary

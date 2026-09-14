@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "core/keystate.h"
 #include "core/keysyms.h"
 #include "core/layout.h"
@@ -6,6 +8,27 @@
 #include <QtTest>
 
 using namespace osk;
+
+namespace {
+
+// A resolver that cannot name Control_L, standing in for a server whose keysym
+// table lacks it: the state machine must then omit the modifier from the script
+// instead of injecting keysym 0.
+class NoCtrlResolver : public KeysymResolver
+{
+public:
+    bool fromName(const QString &name, quint32 *keysym) const override
+    {
+        if (name == QLatin1String(modsym::kCtrl))
+            return false;
+        return fallback_.fromName(name, keysym);
+    }
+
+private:
+    XlibKeysymResolver fallback_;
+};
+
+} // namespace
 
 class TestKeyState : public QObject
 {
@@ -25,6 +48,8 @@ private slots:
     void layerSwitch();
     void hideAction();
     void repeatWhileHeld();
+    void unrelatedReleaseKeepsRepeat();
+    void unresolvedModifierIsSkipped();
     void languageSwitch();
 
 private:
@@ -391,6 +416,72 @@ void TestKeyState::repeatWhileHeld()
     QTest::qWait(60);
     QCOMPARE(outputs_.size(), count); // release stops the repeat
     machine_.setRepeatTiming(450, 55);
+}
+
+void TestKeyState::unrelatedReleaseKeepsRepeat()
+{
+    machine_.setRepeatTiming(20, 10);
+    const KeyDef *backspace = findKey(QStringLiteral("us"), QStringLiteral("full"),
+                                      QStringLiteral("main"), QStringLiteral("BackSpace"));
+    const KeyDef *enter = findKey(QStringLiteral("us"), QStringLiteral("full"),
+                                  QStringLiteral("main"), QStringLiteral("Return"));
+    QVERIFY(backspace && enter);
+    QVERIFY(!enter->repeat);
+
+    outputs_.clear();
+    machine_.press(*backspace);
+    QTest::qWait(80);
+
+    // Pressing and releasing another key while Backspace is held (multi-touch)
+    // must not stop Backspace's repeat.
+    machine_.press(*enter);
+    machine_.release(*enter);
+    const int count = outputs_.size();
+    QTest::qWait(60);
+    QVERIFY(outputs_.size() > count);
+
+    machine_.release(*backspace);
+    const int stopped = outputs_.size();
+    QTest::qWait(60);
+    QCOMPARE(outputs_.size(), stopped);
+    machine_.setRepeatTiming(450, 55);
+}
+
+void TestKeyState::unresolvedModifierIsSkipped()
+{
+    NoCtrlResolver resolver;
+    LayoutLibrary library(&resolver);
+    library.scan();
+    KeyStateMachine machine(&resolver, &library);
+
+    QVector<Output> outputs;
+    connect(&machine, &KeyStateMachine::output, this, [&outputs](const Output &out) { outputs.append(out); });
+
+    machine.setLayoutId(QStringLiteral("us"));
+    machine.setMode(QStringLiteral("full"));
+    const KeyDef *ctrl = findMod(QStringLiteral("us"), QStringLiteral("full"), QStringLiteral("main"),
+                                 QStringLiteral("ctrl"));
+    const KeyDef *keyC = findKey(QStringLiteral("us"), QStringLiteral("full"), QStringLiteral("main"),
+                                 QStringLiteral("c"));
+    QVERIFY(ctrl && keyC);
+
+    machine.press(*ctrl);
+    machine.release(*ctrl);
+    QCOMPARE(int(machine.modState(QStringLiteral("ctrl"))), int(KeyStateMachine::OneShot));
+    QVERIFY(machine.modActive(QStringLiteral("ctrl")));
+
+    outputs.clear();
+    machine.press(*keyC);
+    machine.release(*keyC);
+
+    QCOMPARE(outputs.size(), 1);
+    // ctrl cannot be injected, so the script carries only the tap, and the
+    // one-shot is still consumed.
+    const KeyScript script = outputs.first().script;
+    QCOMPARE(script.size(), 1);
+    QCOMPARE(int(script.first().type), int(KeyAction::Tap));
+    QCOMPARE(script.first().keysym, keysym("c"));
+    QCOMPARE(int(machine.modState(QStringLiteral("ctrl"))), int(KeyStateMachine::Off));
 }
 
 void TestKeyState::languageSwitch()

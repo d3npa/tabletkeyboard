@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "core/theme.h"
 
 #include <QDir>
@@ -32,7 +34,7 @@ bool readColor(const QJsonObject &obj, const char *name, QString *target, QStrin
     return true;
 }
 
-bool readMetric(const QJsonObject &obj, const char *name, int *target, QString *error, int minValue = 0)
+bool readMetric(const QJsonObject &obj, const char *name, int *target, QString *error, int minValue)
 {
     const QJsonValue value = obj.value(QLatin1String(name));
     if (value.isUndefined())
@@ -63,21 +65,10 @@ bool ThemeSpec::fromJson(const QJsonObject &obj, ThemeSpec *out, QString *error)
     theme.dark = obj.value(QStringLiteral("dark")).toBool(false);
 
     const QJsonObject colors = obj.value(QStringLiteral("colors")).toObject();
-    if (!readColor(colors, "key_top", &theme.keyTop, error)
-        || !readColor(colors, "key_bottom", &theme.keyBottom, error)
-        || !readColor(colors, "key_mid", &theme.keyMid, error)
-        || !readColor(colors, "key_border", &theme.keyBorder, error)
-        || !readColor(colors, "key_text", &theme.keyText, error)
-        || !readColor(colors, "key_pressed_top", &theme.keyPressedTop, error)
-        || !readColor(colors, "key_pressed_bottom", &theme.keyPressedBottom, error)
-        || !readColor(colors, "key_hover", &theme.keyHover, error)
-        || !readColor(colors, "mod_active", &theme.modActive, error)
-        || !readColor(colors, "accent", &theme.accent, error)
-        || !readColor(colors, "bar_bg", &theme.barBg, error)
-        || !readColor(colors, "window_bg", &theme.windowBg, error)
-        || !readColor(colors, "led_on", &theme.ledOn, error)
-        || !readColor(colors, "led_off", &theme.ledOff, error))
-        return false;
+    for (const ThemeColorField &field : themeColorFields) {
+        if (!readColor(colors, field.name, &(theme.*field.member), error))
+            return false;
+    }
 
     if (colors.contains(QStringLiteral("window_opacity"))) {
         const double opacity = colors.value(QStringLiteral("window_opacity")).toDouble(-1);
@@ -87,18 +78,10 @@ bool ThemeSpec::fromJson(const QJsonObject &obj, ThemeSpec *out, QString *error)
     }
 
     const QJsonObject metrics = obj.value(QStringLiteral("metrics")).toObject();
-    if (!readMetric(metrics, "radius", &theme.radius, error)
-        || !readMetric(metrics, "border", &theme.border, error)
-        || !readMetric(metrics, "gap", &theme.gap, error)
-        || !readMetric(metrics, "padding", &theme.padding, error)
-        || !readMetric(metrics, "key_unit", &theme.keyUnit, error, 8))
-        return false;
-    if (!readMetric(metrics, "bar_height", &theme.barHeight, error, 8))
-        return false;
-    if (!readMetric(metrics, "font_px", &theme.fontPx, error, 6))
-        return false;
-    if (!readMetric(metrics, "label_px", &theme.labelPx, error, 5))
-        return false;
+    for (const ThemeMetricField &field : themeMetricFields) {
+        if (!readMetric(metrics, field.name, &(theme.*field.member), error, field.minValue))
+            return false;
+    }
 
     if (metrics.contains(QStringLiteral("font_family"))) {
         const QString family = metrics.value(QStringLiteral("font_family")).toString();

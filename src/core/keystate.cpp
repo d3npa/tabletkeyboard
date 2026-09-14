@@ -1,8 +1,22 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "core/keystate.h"
 #include "core/keysyms.h"
 #include "core/sym_resolver.h"
 
 namespace osk {
+
+namespace {
+
+// KeyDefs travel by value, so identify a key by what it would send; used to
+// tell "the repeating key was released" from "some other key was released".
+bool isSameKey(const KeyDef &a, const KeyDef &b)
+{
+    return a.type == b.type && a.symCode == b.symCode && a.shiftedCode == b.shiftedCode
+            && a.fnCode == b.fnCode;
+}
+
+} // namespace
 
 KeyStateMachine::KeyStateMachine(const KeysymResolver *resolver, const LayoutLibrary *library, QObject *parent)
     : QObject(parent), resolver_(resolver), library_(library)
@@ -221,7 +235,10 @@ void KeyStateMachine::release(const KeyDef &key)
         releaseMod(key.mod);
         break;
     case KeyDef::Key:
-        stopRepeat();
+        // Only the key that is repeating may stop its repeat: with two keys
+        // held, releasing the other one must not cancel it.
+        if (isSameKey(key, repeatKey_))
+            stopRepeat();
         break;
     default:
         break;
@@ -238,17 +255,22 @@ Output KeyStateMachine::buildKeyTap(const KeyDef &key)
             active.append(mod);
     }
 
-    QStringList scriptMods; // only the modifiers that are pressed through X
+    // Only modifiers with a resolvable keysym reach the script: a keysym of 0
+    // would be a silent no-op in the backend while the UI shows it armed.
+    QVector<quint32> scriptMods;
     for (const QString &mod : modifierIds()) {
-        if (active.contains(mod))
-            scriptMods.append(mod);
+        if (!active.contains(mod))
+            continue;
+        const quint32 keysym = modKeysym(mod);
+        if (keysym != 0)
+            scriptMods.append(keysym);
     }
 
-    for (const QString &mod : scriptMods)
-        out.script.append(KeyAction(KeyAction::Down, modKeysym(mod)));
+    for (const quint32 keysym : scriptMods)
+        out.script.append(KeyAction(KeyAction::Down, keysym));
     out.script.append(KeyAction(KeyAction::Tap, targetKeysym(key)));
     for (int i = scriptMods.size() - 1; i >= 0; --i)
-        out.script.append(KeyAction(KeyAction::Up, modKeysym(scriptMods.at(i))));
+        out.script.append(KeyAction(KeyAction::Up, scriptMods.at(i)));
 
     for (const QString &mod : active) {
         ModInfo *info = mods_.value(mod, nullptr);

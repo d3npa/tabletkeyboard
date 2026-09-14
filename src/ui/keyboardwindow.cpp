@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "ui/keyboardwindow.h"
 #include "core/geometry.h"
 #include "core/keystate.h"
@@ -7,6 +9,7 @@
 #include "ui/themepainter.h"
 #include "ui/titlebar.h"
 
+#include <QCursor>
 #include <QGuiApplication>
 #include <QMouseEvent>
 #include <QPainter>
@@ -45,6 +48,12 @@ KeyboardWindow::KeyboardWindow(KeyStateMachine *machine, const ThemeLibrary *the
     positionTimer_->setSingleShot(true);
     positionTimer_->setInterval(400);
     connect(positionTimer_, &QTimer::timeout, this, [this]() { emit positionChanged(pos(), screenName()); });
+
+    // Fallback for WMs that accept _NET_WM_MOVERESIZE and then ignore it.
+    systemMoveTimer_ = new QTimer(this);
+    systemMoveTimer_->setSingleShot(true);
+    systemMoveTimer_->setInterval(300);
+    connect(systemMoveTimer_, &QTimer::timeout, this, &KeyboardWindow::takeOverFromSystemMove);
 
     if (!themes_->themes().isEmpty())
         themeId_ = themes_->themes().first().id;
@@ -154,10 +163,14 @@ void KeyboardWindow::doRebuild()
             blocks.append(&block);
     }
 
-    const QScreen *primaryScreen = QGuiApplication::primaryScreen();
-    const int availableWidth = primaryScreen
-            ? primaryScreen->availableGeometry().width() * 98 / 100
-            : std::numeric_limits<int>::max();
+    // Fit against the screen the keyboard will appear on (the one under the
+    // pointer, like the placement in App::showKeyboard), not the primary one:
+    // on a multi-monitor setup a smaller screen must not be overflowed.
+    const QScreen *targetScreen = QGuiApplication::screenAt(QCursor::pos());
+    if (!targetScreen)
+        targetScreen = QGuiApplication::primaryScreen();
+    const int availableWidth = targetScreen ? targetScreen->availableGeometry().width() * 98 / 100
+                                            : std::numeric_limits<int>::max();
     const double fit = fitKeyUnit(blocks, hiddenBlocks_, gapRatio, paddingRatio, availableWidth);
     unit_ = qMax(10.0, qMin(fit, scale_ * baseUnit));
 
@@ -221,22 +234,50 @@ void KeyboardWindow::paintEvent(QPaintEvent *)
 void KeyboardWindow::beginDrag(const QPoint &globalPos)
 {
     dragging_ = false;
+    systemMove_ = false;
+    dragAnchor_ = globalPos;
+    dragAnchorWindow_ = pos();
     if (QWindow *handle = windowHandle()) {
         if (handle->startSystemMove())
             return; // WM-driven move: snapping etc. for free
     }
+    startManualDrag(globalPos);
+}
+
+void KeyboardWindow::startManualDrag(const QPoint &globalPos)
+{
     dragging_ = true;
     dragOffset_ = globalPos - frameGeometry().topLeft();
 }
 
+void KeyboardWindow::takeOverFromSystemMove()
+{
+    if (!systemMove_ || pos() != dragAnchorWindow_)
+        return; // the WM did move the window: it is handling the drag
+    systemMove_ = false;
+    startManualDrag(QCursor::pos());
+}
+
 void KeyboardWindow::dragTo(const QPoint &globalPos)
 {
+    if (systemMove_) {
+        // Some WMs answer _NET_WM_MOVERESIZE and then never move the window
+        // (they were supposed to grab the pointer). Give them a grace period;
+        // if the window is still where the press left it, take the drag over.
+        if (pos() == dragAnchorWindow_ && (globalPos - dragAnchor_).manhattanLength() > 8
+            && systemMoveTimer_ && !systemMoveTimer_->isActive())
+            systemMoveTimer_->start();
+        return;
+    }
     if (dragging_)
         move(globalPos - dragOffset_);
 }
 
 void KeyboardWindow::endDrag()
 {
+    if (systemMoveTimer_)
+        systemMoveTimer_->stop();
+    systemMove_ = false;
     if (dragging_) {
         dragging_ = false;
         savePositionSoon();
@@ -301,8 +342,10 @@ void KeyboardWindow::restorePosition(const QPoint &pos)
     }
     const QRect available = screen->availableGeometry();
     QPoint target = pos;
+    // Keep the whole window on the screen: the title bar is the only drag
+    // surface, so a partially off-screen window can become impossible to grab.
     target.setX(qBound(available.left(), target.x(), qMax(available.left(), available.right() - width() + 1)));
-    target.setY(qBound(available.top(), target.y(), qMax(available.top(), available.bottom() - 20)));
+    target.setY(qBound(available.top(), target.y(), qMax(available.top(), available.bottom() - height() + 1)));
     move(target);
 }
 

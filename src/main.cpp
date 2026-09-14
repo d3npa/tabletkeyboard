@@ -1,4 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "app/app.h"
+#include "app/args.h"
 #include "core/lint.h"
 #include "platform/x11/symresolver_x11.h"
 
@@ -108,8 +111,16 @@ int main(int argc, char *argv[])
         return runCheckLayout(args.at(checkIndex + 1));
     }
 
-    osk::App osk;
+    // Validate before starting (and before forwarding): a typo must not look
+    // like a successful start.
+    osk::CommandLineOptions options;
     QString error;
+    if (!osk::parseCommandLine(args, &options, &error)) {
+        std::fprintf(stderr, "tabletkeyboard: %s\nTry 'tabletkeyboard --help'.\n", qPrintable(error));
+        return 2;
+    }
+
+    osk::App osk;
     switch (osk.init(&error)) {
     case osk::App::Secondary:
         osk.forwardArgs(args);
@@ -124,7 +135,7 @@ int main(int argc, char *argv[])
     installSignalHandlers();
 
     osk.applyInitialSettings();
-    osk.handleArgs(args);
+    osk.handleArgs(options);
 
     return application.exec();
 }

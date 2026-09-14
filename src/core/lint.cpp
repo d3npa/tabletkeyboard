@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "core/lint.h"
 #include "core/keysyms.h"
 
@@ -147,50 +149,24 @@ QVector<LintIssue> Lint::check(const ThemeSpec &theme)
     if (theme.name.isEmpty())
         addWarning(&issues, QStringLiteral("name"), QStringLiteral("theme name is empty"));
 
-    const struct
-    {
-        const char *name;
-        const QString &value;
-    } colors[] = {
-        { "key_top", theme.keyTop },
-        { "key_bottom", theme.keyBottom },
-        { "key_border", theme.keyBorder },
-        { "key_text", theme.keyText },
-        { "key_pressed_top", theme.keyPressedTop },
-        { "key_pressed_bottom", theme.keyPressedBottom },
-        { "key_hover", theme.keyHover },
-        { "mod_active", theme.modActive },
-        { "accent", theme.accent },
-        { "bar_bg", theme.barBg },
-        { "window_bg", theme.windowBg },
-        { "led_on", theme.ledOn },
-        { "led_off", theme.ledOff },
-    };
-    for (const auto &color : colors) {
-        if (!isValidColor(color.value))
-            addError(&issues, QStringLiteral("colors.") + QLatin1String(color.name),
+    for (const ThemeColorField &field : themeColorFields) {
+        const QString &value = theme.*(field.member);
+        if (field.optional && value.isEmpty())
+            continue; // e.g. key_mid: the plain two-stop key gradient
+        if (!isValidColor(value)) {
+            addError(&issues, QStringLiteral("colors.") + QLatin1String(field.name),
                      QStringLiteral("must be #rrggbb"));
+        }
     }
-
-    // Optional: an empty key_mid means the plain two-stop key gradient.
-    if (!theme.keyMid.isEmpty() && !isValidColor(theme.keyMid))
-        addError(&issues, QStringLiteral("colors.key_mid"), QStringLiteral("must be #rrggbb"));
 
     if (!(theme.windowOpacity >= 0.0 && theme.windowOpacity <= 1.0))
         addError(&issues, QStringLiteral("colors.window_opacity"), QStringLiteral("must be within [0, 1]"));
 
-    if (theme.keyUnit < 8)
-        addError(&issues, QStringLiteral("metrics.key_unit"), QStringLiteral("must be >= 8"));
-    if (theme.fontPx < 6)
-        addError(&issues, QStringLiteral("metrics.font_px"), QStringLiteral("must be >= 6"));
-    if (theme.labelPx < 5)
-        addError(&issues, QStringLiteral("metrics.label_px"), QStringLiteral("must be >= 5"));
-    if (theme.barHeight < 8)
-        addError(&issues, QStringLiteral("metrics.bar_height"), QStringLiteral("must be >= 8"));
-    for (const int value : { theme.radius, theme.border, theme.gap, theme.padding }) {
-        if (value < 0) {
-            addError(&issues, QStringLiteral("metrics"), QStringLiteral("metrics must not be negative"));
-            break;
+    for (const ThemeMetricField &field : themeMetricFields) {
+        const int value = theme.*(field.member);
+        if (value < field.minValue) {
+            addError(&issues, QStringLiteral("metrics.") + QLatin1String(field.name),
+                     QStringLiteral("must be >= %1").arg(field.minValue));
         }
     }
     if (theme.fontFamily.isEmpty())

@@ -4,16 +4,16 @@ Run on the target device (Let's Note CF-QV, Slackware 15.0, KDE Plasma 5/X11,
 fcitx5 with `fcitx5-qt` + `fcitx5-mozc`), with the same fcitx5 configuration as
 physical typing. Rerun after any change that touches injection.
 
-Legend: ✓ = executed, ✗ = failed, `–` = not applicable, **pending** = not yet
-executed.
+Legend: ✓ = executed, ✗ = failed, `–` = not applicable, **not covered** = no
+result in this release.
 
 | Target | ASCII typing | JP compose → 変換 → Enter | 半角/全角 toggle | Ctrl+C/V, Alt+Tab | Focus preserved |
 |---|---|---|---|---|---|
 | Konsole (Qt, fcitx5-qt) | ✓ `echo hello` → `hello` | – | – | ✓ Alt+Tab switched the active window (KWin); ✓ Ctrl+U (readline) | ✓ |
 | Kate (Qt/KF5) | ✓ `hello` saved | ✓ `感じ`, `私は学生です` | ✓ `fcitx5-remote` 1 → 2 | ✓ Ctrl+A/Ctrl+C/Ctrl+V round trip (`xyz` → `1xyz`); Ctrl+S | ✓ |
-| Firefox (GTK3, fcitx5-gtk) | pending | pending | pending | pending | pending |
-| Thunderbird | pending | pending | pending | pending | pending |
-| `xterm` (XIM via `XMODIFIERS`) | pending (not installed on the target) | | | | |
+| Firefox (GTK3, fcitx5-gtk) | not covered | not covered | not covered | not covered | not covered |
+| Thunderbird | not covered | not covered | not covered | not covered | not covered |
+| `xterm` (XIM via `XMODIFIERS`) | not covered (not installed on the target) | | | | |
 
 Notes from the target run:
 
@@ -26,9 +26,10 @@ Notes from the target run:
   carry the same keycodes (100/102 on the `jp` map) and keysyms; on this machine
   無変換 is bound to `[Hotkey/DeactivateKeys]` in `~/.config/fcitx5/config`, so
   it deactivates the IME — the OSK does not change that.
-- Firefox/Thunderbird/xterm still need a pass; the mechanism is identical
-  (XTEST into the focused window), but these use different IME front-ends
-  (GTK module and XIM), so they are worth running.
+- Firefox, Thunderbird and xterm are **not covered by 0.1**: they use different
+  IME front-ends (the GTK module and XIM) than Konsole/Kate, so they are listed
+  as an explicit gap for a later pass. The injection mechanism they would
+  exercise is the same one that is already verified above.
 
 ## Development-machine harness (Xvfb, and fluxbox as a second WM)
 

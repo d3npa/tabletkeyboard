@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "platform/x11/xconnection.h"
 
 #include <QSocketNotifier>
@@ -7,6 +9,22 @@
 #include <X11/keysym.h>
 
 namespace osk {
+
+namespace {
+
+// Xlib's default handler terminates the process on some errors, which must not
+// happen for a failed request on the private connection. Xlib exposes no
+// request-name table, so log the request codes and the error text instead.
+int xErrorHandler(Display *display, XErrorEvent *event)
+{
+    char text[128] = {};
+    XGetErrorText(display, event->error_code, text, sizeof(text));
+    qWarning("tabletkeyboard: X error: %s (request %d.%d, resource 0x%lx)", text, int(event->request_code),
+             int(event->minor_code), event->resourceid);
+    return 0; // keep going
+}
+
+} // namespace
 
 X11Connection::X11Connection(QObject *parent) : QObject(parent) {}
 
@@ -24,6 +42,10 @@ bool X11Connection::open(QString *error)
             *error = QStringLiteral("cannot open the X display (is DISPLAY set?)");
         return false;
     }
+
+    // Process-global by Xlib design; Qt's XCB connection reports its errors
+    // through XCB, so this only covers the private connection.
+    XSetErrorHandler(xErrorHandler);
 
     int eventBase = 0;
     int errorBase = 0;

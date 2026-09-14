@@ -1,8 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "platform/x11/keycodes.h"
 
 #include <QVector>
 
-#include <X11/XKBlib.h>
+#include <X11/Xlib.h>
 #include <X11/keysym.h>
 
 namespace osk {
@@ -169,57 +171,13 @@ KeyCode KeycodeAllocator::ensureSpare(quint32 keysym)
     return 0;
 }
 
-bool KeycodeAllocator::probeSpareModifiers()
-{
-    if (!dpy_)
-        return false;
-    KeyCode candidate = 0;
-    for (const KeyCode keycode : freeKeycodes_) {
-        if (!spares_.contains(keycode)) {
-            candidate = keycode;
-            break;
-        }
-    }
-    if (!candidate)
-        return false;
-
-    writeKeycode(candidate, XK_Shift_L);
-    XSync(dpy_, False);
-
-    bool works = false;
-    XModifierKeymap *modifierMap = XGetModifierMapping(dpy_);
-    if (modifierMap) {
-        for (int slot = 0; slot < modifierMap->max_keypermod; ++slot) {
-            if (modifierMap->modifiermap[ShiftMapIndex * modifierMap->max_keypermod + slot] == candidate) {
-                works = true;
-                break;
-            }
-        }
-        XFreeModifiermap(modifierMap);
-    }
-
-    writeKeycode(candidate, NoSymbol);
-    XSync(dpy_, False);
-    return works;
-}
-
 KeyCode KeycodeAllocator::modifierKeycode(quint32 modKeysym)
 {
     const KeyCode cached = modifierKeycodes_.value(modKeysym, 0);
     if (cached)
         return cached;
 
-    if (!modifierProbeDone_) {
-        modifierProbeDone_ = true;
-        spareModifiers_ = probeSpareModifiers();
-    }
-
-    KeyCode keycode = 0;
-    if (spareModifiers_)
-        keycode = ensureSpare(modKeysym);
-    if (!keycode && dpy_)
-        keycode = XKeysymToKeycode(dpy_, KeySym(modKeysym));
-
+    const KeyCode keycode = dpy_ ? XKeysymToKeycode(dpy_, KeySym(modKeysym)) : 0;
     modifierKeycodes_.insert(modKeysym, keycode);
     return keycode;
 }

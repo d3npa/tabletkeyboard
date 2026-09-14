@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #pragma once
 
 #include "ui/themepainter.h"
@@ -85,6 +87,8 @@ private:
     QString modeTitle() const;
     QWidget *buildContent(const QVector<const Block *> &blocks, int gap, double uiScale);
     void beginDrag(const QPoint &globalPos);
+    void startManualDrag(const QPoint &globalPos);
+    void takeOverFromSystemMove();
     void dragTo(const QPoint &globalPos);
     void endDrag();
     void savePositionSoon();
@@ -108,7 +112,11 @@ private:
     QString inputWarning_;
     bool rebuildPending_ = false;
     bool dragging_ = false;
+    bool systemMove_ = false; // the WM accepted the move; stay out of its way
+    QPoint dragAnchor_;       // press position, global coordinates
+    QPoint dragAnchorWindow_; // window position at the press
     QPoint dragOffset_;
+    QTimer *systemMoveTimer_ = nullptr;
 };
 
 } // namespace osk

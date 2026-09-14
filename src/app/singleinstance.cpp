@@ -1,15 +1,25 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "app/singleinstance.h"
 
+#include <QDir>
 #include <QLocalServer>
 #include <QLocalSocket>
+#include <QStandardPaths>
+
+#include <unistd.h>
 
 namespace osk {
 
 namespace {
 
-QString socketName()
+// Per-user socket path. A fixed name in the shared temp directory is both
+// squattable and unsafe to remove: a second user's start used to unlink it.
+QString socketPath()
 {
-    return QStringLiteral("tabletkeyboard");
+    const QString runtimeDir = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
+    const QString dir = runtimeDir.isEmpty() ? QDir::tempPath() : runtimeDir;
+    return dir + QStringLiteral("/tabletkeyboard-%1").arg(::getuid());
 }
 
 } // namespace
@@ -19,15 +29,15 @@ SingleInstance::SingleInstance(QObject *parent) : QObject(parent) {}
 SingleInstance::ClaimResult SingleInstance::claim(QString *error)
 {
     QLocalSocket probe;
-    probe.connectToServer(socketName());
+    probe.connectToServer(socketPath());
     if (probe.waitForConnected(200)) {
         probe.disconnectFromServer();
         return Secondary;
     }
 
-    QLocalServer::removeServer(socketName());
+    QLocalServer::removeServer(socketPath());
     server_ = new QLocalServer(this);
-    if (!server_->listen(socketName())) {
+    if (!server_->listen(socketPath())) {
         if (error)
             *error = QStringLiteral("cannot create the single-instance socket: %1").arg(server_->errorString());
         return Failed;
@@ -52,7 +62,7 @@ SingleInstance::ClaimResult SingleInstance::claim(QString *error)
 bool SingleInstance::forward(const QStringList &args) const
 {
     QLocalSocket socket;
-    socket.connectToServer(socketName());
+    socket.connectToServer(socketPath());
     if (!socket.waitForConnected(500))
         return false;
     socket.write(args.join(QLatin1Char('\n')).toUtf8());

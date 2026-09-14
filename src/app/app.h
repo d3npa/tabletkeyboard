@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #pragma once
 
 #include "app/settings.h"
@@ -23,6 +25,7 @@ class ThemeLibrary;
 class Tray;
 class WindowAdapter;
 class XlibKeysymResolver;
+struct CommandLineOptions;
 
 // Wires everything together: X11 connection, input backend, state machine, UI,
 // tray, settings and the single-instance command pipe.
@@ -41,6 +44,8 @@ public:
 
     // CLI arguments, or the same arguments forwarded by a second instance.
     void handleArgs(const QStringList &args);
+    // Already parsed (and validated) arguments.
+    void handleArgs(const CommandLineOptions &options);
 
     void showKeyboard();
     void hideKeyboard();
@@ -54,7 +59,7 @@ public:
     void setAutostart(bool on);
     void setDarkMode(bool on);
     void toggleDarkMode();
-    void setBlockVisible(const QString &id, bool visible); // "frow" | "numpad"
+    void setBlockVisible(const QString &id, bool visible); // blocks::kFrow | blocks::kNumpad
     void setKeyUnit(int px);                               // 0 = the theme's key_unit
     void setThemeForSlot(bool darkMode, const QString &id); // write one theme slot
     void setShowKana(bool on);

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #pragma once
 
 #include <QHash>
@@ -39,8 +41,9 @@ public:
     KeyCode ensureSpare(quint32 keysym);
     KeyCode spareFor(quint32 keysym) const { return sparesFor_.value(keysym, 0); }
 
-    // Keycode that acts as a modifier (spare when possible, so releasing it
-    // can never clobber a physically held key).
+    // Keycode that acts as a modifier. Resolved through the server's real
+    // modifier map: under XKB a raw keymap change cannot add a modifier, so
+    // spares are never used for modifiers (docs/spikes.md, S2).
     KeyCode modifierKeycode(quint32 modKeysym);
 
     void restoreSpares();
@@ -50,7 +53,6 @@ private:
     bool keycodeIsFree(KeyCode keycode) const;
     bool keycodeHasKeysymLive(KeyCode keycode, KeySym keysym) const;
     void writeKeycode(KeyCode keycode, KeySym keysym);
-    bool probeSpareModifiers();
 
     Display *dpy_;
     KeyCode minKeycode_ = 0;
@@ -62,8 +64,6 @@ private:
     QHash<quint32, KeyCode> sparesFor_;
     QSet<KeyCode> spares_;
     QHash<quint32, KeyCode> modifierKeycodes_;
-    bool modifierProbeDone_ = false;
-    bool spareModifiers_ = false;
     bool hasAltGr_ = false;
 };
 

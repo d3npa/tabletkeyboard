@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "core/layout.h"
 #include "core/lint.h"
 #include "platform/x11/symresolver_x11.h"

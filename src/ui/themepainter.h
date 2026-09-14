@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #pragma once
 
 #include "core/theme.h"
@@ -28,11 +30,9 @@ class ThemePainter
 public:
     explicit ThemePainter(const ThemeSpec &theme);
 
-    const ThemeSpec &theme() const { return theme_; }
     QColor color(const QString &value) const;
 
     void paintBackground(QPainter &painter, const QRect &rect) const;
-    void paintBar(QPainter &painter, const QRect &rect) const;
     // `bodyRect` is the lower part of a stepped key (JIS Return); empty for a
     // plain rectangular key.
     void paintKey(QPainter &painter, const QRect &rect, const QRect &bodyRect, const KeyVisual &visual,

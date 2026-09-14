@@ -9,6 +9,11 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include(CTest)
 
+# The tree is warning-clean under this set; keep it that way.
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-Wall -Wextra -Wshadow)
+endif()
+
 find_package(Qt5 5.15 REQUIRED COMPONENTS Core Gui Widgets Network)
 find_package(X11 REQUIRED)
 find_library(XTST_LIBRARY NAMES Xtst)
@@ -19,6 +24,7 @@ endif()
 # --- osk-core: pure logic, QtCore only, no X11, no widgets -----------------
 add_library(osk_core STATIC
     src/core/action.h
+    src/core/blocks.h
     src/core/keysyms.h
     src/core/keysyms.cpp
     src/core/keystate.h
@@ -71,10 +77,13 @@ add_executable(tabletkeyboard
     src/main.cpp
     src/app/app.h
     src/app/app.cpp
+    src/app/args.h
+    src/app/args.cpp
     src/app/autostart.h
     src/app/autostart.cpp
     src/app/icon.h
     src/app/icon.cpp
+    src/app/limits.h
     src/app/settings.h
     src/app/settings.cpp
     src/app/settingsdialog.h

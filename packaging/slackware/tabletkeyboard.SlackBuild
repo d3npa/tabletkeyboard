@@ -58,7 +58,7 @@ if [ -f "$CWD/$PRGNAM-$VERSION.tar.gz" ]; then
   tar xvf $CWD/$PRGNAM-$VERSION.tar.gz
 elif [ -d "$CWD/../.." ]; then
   mkdir -p $PRGNAM-$VERSION
-  (cd $CWD/../.. && tar cf - --exclude=build --exclude=.git .) | (cd $PRGNAM-$VERSION && tar xf -)
+  (cd $CWD/../.. && tar cf - --exclude='build*' --exclude=.git .) | (cd $PRGNAM-$VERSION && tar xf -)
 else
   echo "$0: no source tarball or source tree found" >&2
   exit 1

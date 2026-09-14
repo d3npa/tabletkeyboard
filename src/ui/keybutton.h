@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #pragma once
 
 #include "core/layout.h"
@@ -21,8 +23,6 @@ public:
     // rectangle. `showKana` paints the key's printed kana legend.
     KeyButton(const KeyDef &key, KeyStateMachine *machine, const ThemePainter *painter, double uiScale,
               bool showKana, const QSize &size, const QRect &bodyRect, QWidget *parent = nullptr);
-
-    const KeyDef &keyDef() const { return key_; }
 
 protected:
     void paintEvent(QPaintEvent *event) override;

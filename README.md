@@ -66,6 +66,10 @@ ctest --test-dir build            # unit tests
 sudo cmake --install build        # /usr/local (use -DCMAKE_INSTALL_PREFIX=/usr)
 ```
 
+A thin `Makefile` wraps the same flow: `make`, `make test`, `make lint`,
+`make install PREFIX=/usr`, `make clean` (`make help` lists the overridable
+variables).
+
 Slackware package: `cd packaging/slackware && ./tabletkeyboard.SlackBuild`.
 
 ## Run
@@ -93,7 +97,8 @@ tabletkeyboard --check-layout data/layouts/jp106.json
 | `--version`, `--help` | |
 
 All of these work on a running instance too: the second process forwards its
-arguments and exits.
+arguments and exits. Options are validated: an unknown option, a missing value
+or an invalid value is reported on stderr and exits with status 2.
 
 ## Configuration
 
@@ -122,8 +127,9 @@ scales it: on the Let's Note (2880×1920 panel, session scaled 2×) 72 px covers
 2 × 72 physical px ≈ 38 mm, and `keyUnit=36` gives ≈19 mm. The window never
 exceeds 98 % of the screen width — the fit shrinks the keys if a wide layout
 with the numpad and the F-row would not fit. QSettings writes `general/*` into
-the `[%General]` group (`general` would collide with the file's `[General]`
-section); a hand-written top-level `keyUnit=…` line is accepted as well.
+the `[%General]` section (`general` would collide with the file's `[General]`
+section) and reads that section back as `General/*`; the loader accepts
+`General/*`, `general/*` and hand-written top-level spellings.
 
 ## Layouts and themes
 
@@ -159,11 +165,14 @@ keysym with every level set the same, so no modifier state can change the
 result. Spares are reused, re-created after an external map reset
 (`XkbMapNotify`), and restored on exit — including on SIGTERM/SIGINT/SIGHUP.
 
-Modifiers are pressed through their real keycodes (see `docs/spikes.md` for the
-spare-modifier probe result).
+Modifiers are pressed through their real keycodes: the spare-modifier probe
+fails under XKB, so no spare is used for them (`docs/spikes.md`, S2).
 
 ## Troubleshooting
 
+- **`no usable layouts/themes found; refusing to start`** — the bundled data is
+  compiled into the binary, so this means the resource is broken (bad build);
+  check the parse errors printed above it.
 - **A ⚠ appears in the title bar** — XTEST is missing on this display
   (`xdpyinfo | grep -i xtest`). The keyboard cannot inject anything.
 - **No tray icon under Plasma** — Plasma hosts XEmbed tray icons through
@@ -183,7 +192,9 @@ Verified end-to-end on the target device (Let's Note CF-QV, Slackware 15.0,
 KDE Plasma 5/X11, fcitx5-mozc): XTEST injection, focusless window and EWMH
 hints under KWin, tray icon, Alt+Tab through KWin, ASCII and Ctrl+C/V in Kate
 and Konsole, and a full Japanese sentence composed and converted purely from the
-OSK. Details and remaining items: `docs/spikes.md` and `docs/test-matrix.md`.
+OSK. Details and remaining items: `docs/spikes.md` and `docs/test-matrix.md`
+(Firefox/Thunderbird/xterm and touch on the panel are not covered by this
+release).
 
 ## License
 

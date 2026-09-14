@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #pragma once
 
 #include <QString>
@@ -17,10 +19,10 @@ inline constexpr const char *kAltGr = "ISO_Level3_Shift";
 
 // The five sticky modifiers that are pressed through X, in the order they are
 // pressed.
-QStringList modifierIds();
+const QStringList &modifierIds();
 // Every modifier the OSK knows, including "fn", which changes the keysym a
 // later key sends but has no X keysym of its own.
-QStringList allModifierIds();
+const QStringList &allModifierIds();
 bool isModifierId(const QString &mod);
 QString modifierKeysymName(const QString &mod); // empty for unknown ids and "fn"
 

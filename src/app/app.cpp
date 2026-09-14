@@ -1,9 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "app/app.h"
 
+#include "app/args.h"
 #include "app/autostart.h"
 #include "app/icon.h"
+#include "app/limits.h"
 #include "app/settingsdialog.h"
 #include "app/tray.h"
+#include "core/blocks.h"
 #include "core/layout.h"
 #include "core/theme.h"
 #include "platform/input_backend.h"
@@ -26,6 +31,8 @@ App::App(QObject *parent) : QObject(parent) {}
 
 App::~App()
 {
+    delete window_; // no parent: a QWidget cannot be parented to App
+    window_ = nullptr;
     if (input_)
         input_->shutdown();
 }
@@ -40,7 +47,8 @@ App::InitResult App::init(QString *error)
         return Secondary;
     if (claim == SingleInstance::Failed)
         return Failed;
-    connect(single_, &SingleInstance::commandReceived, this, &App::handleArgs);
+    connect(single_, &SingleInstance::commandReceived, this,
+            qOverload<const QStringList &>(&App::handleArgs));
 
     if (!xconn_.open(error))
         return Failed;
@@ -50,8 +58,23 @@ App::InitResult App::init(QString *error)
     layouts_->scan();
     themes_ = new ThemeLibrary();
     themes_->scan();
+
+    for (const QString &layoutError : layouts_->errors())
+        qWarning("tabletkeyboard: layout: %s", qPrintable(layoutError));
+    for (const QString &themeError : themes_->errors())
+        qWarning("tabletkeyboard: theme: %s", qPrintable(themeError));
+    if (layouts_->sets().isEmpty() || themes_->themes().isEmpty()) {
+        // The bundled layouts and themes are compiled in; an empty library
+        // means a broken resource, and an empty keyboard would be a dead end.
+        if (error) {
+            *error = QStringLiteral("no usable %1 found; refusing to start")
+                         .arg(layouts_->sets().isEmpty() ? QStringLiteral("layouts") : QStringLiteral("themes"));
+        }
+        return Failed;
+    }
+
     if (!layouts_->byId(settings_.layoutId))
-        settings_.layoutId = layouts_->sets().isEmpty() ? QString() : layouts_->sets().first().id;
+        settings_.layoutId = layouts_->sets().first().id;
     // A slot must hold a theme of its own variant; an unknown or mismatched id
     // falls back to the first theme of that variant (scan order).
     const auto fixThemeSlot = [this](QString &id, bool dark) {
@@ -128,11 +151,6 @@ App::InitResult App::init(QString *error)
     saveTimer_->setInterval(600);
     connect(saveTimer_, &QTimer::timeout, this, &App::saveSettings);
 
-    for (const QString &layoutError : layouts_->errors())
-        qWarning("tabletkeyboard: layout: %s", qPrintable(layoutError));
-    for (const QString &themeError : themes_->errors())
-        qWarning("tabletkeyboard: theme: %s", qPrintable(themeError));
-
     if (!input_->available())
         qWarning("tabletkeyboard: %s", qPrintable(input_->unavailableReason()));
 
@@ -159,77 +177,44 @@ void App::forwardArgs(const QStringList &args) const
 
 void App::handleArgs(const QStringList &args)
 {
-    bool show = false;
-    bool hide = false;
-    bool toggle = false;
-    bool dark = false;
-    bool light = false;
-    QString mode;
-    QString language;
-    QString theme;
-    QString blocks;
-    double scale = -1;
+    CommandLineOptions options;
+    QString error;
+    if (!parseCommandLine(args, &options, &error)) {
+        // Forwarded payloads were validated by the sender, but a stale or
+        // hand-crafted command must not be applied half-way.
+        qWarning("tabletkeyboard: %s", qPrintable(error));
+        return;
+    }
+    handleArgs(options);
+}
 
-    for (int i = 0; i < args.size(); ++i) {
-        const QString arg = args.at(i);
-        const auto valueFor = [&](const char *name, QString *target) {
-            const QString prefix = QLatin1String(name) + QLatin1Char('=');
-            if (arg == QLatin1String(name) && i + 1 < args.size()) {
-                *target = args.at(++i);
-                return true;
-            }
-            if (arg.startsWith(prefix)) {
-                *target = arg.mid(prefix.size());
-                return true;
-            }
-            return false;
-        };
-
-        if (arg == QLatin1String("--show"))
-            show = true;
-        else if (arg == QLatin1String("--hide"))
-            hide = true;
-        else if (arg == QLatin1String("--toggle"))
-            toggle = true;
-        else if (arg == QLatin1String("--dark"))
-            dark = true;
-        else if (arg == QLatin1String("--light"))
-            light = true;
-        else if (valueFor("--mode", &mode)) {
-        } else if (valueFor("--lang", &language)) {
-        } else if (valueFor("--theme", &theme)) {
-        } else if (valueFor("--blocks", &blocks)) {
-        } else if (arg.startsWith(QLatin1String("--scale"))) {
-            QString text;
-            if (valueFor("--scale", &text))
-                scale = text.toDouble();
+void App::handleArgs(const CommandLineOptions &options)
+{
+    // Dark/light first: --theme then picks the theme of the active slot.
+    if (options.dark)
+        setDarkMode(true);
+    if (options.light)
+        setDarkMode(false);
+    if (!options.theme.isEmpty())
+        setThemeId(options.theme);
+    if (!options.mode.isEmpty())
+        setModeId(options.mode);
+    if (!options.language.isEmpty())
+        setLayoutId(options.language);
+    if (options.scale > 0)
+        setScale(options.scale);
+    if (!options.blocks.isEmpty()) {
+        for (const char *id : { blocks::kFrow, blocks::kNumpad }) {
+            const QString block = QString::fromLatin1(id);
+            setBlockVisible(block, options.blocks.contains(block));
         }
     }
 
-    // Dark/light first: --theme then picks the theme of the active slot.
-    if (dark)
-        setDarkMode(true);
-    if (light)
-        setDarkMode(false);
-    if (!theme.isEmpty())
-        setThemeId(theme);
-    if (!mode.isEmpty())
-        setModeId(mode);
-    if (!language.isEmpty())
-        setLayoutId(language);
-    if (scale > 0)
-        setScale(scale);
-    if (!blocks.isEmpty()) {
-        const QStringList shown = blocks.split(QLatin1Char(','), Qt::SkipEmptyParts);
-        setBlockVisible(QStringLiteral("frow"), shown.contains(QStringLiteral("frow")));
-        setBlockVisible(QStringLiteral("numpad"), shown.contains(QStringLiteral("numpad")));
-    }
-
-    if (show)
+    if (options.show)
         showKeyboard();
-    else if (hide)
+    else if (options.hide)
         hideKeyboard();
-    else if (toggle)
+    else if (options.toggle)
         toggleKeyboard();
 }
 
@@ -329,9 +314,9 @@ void App::toggleDarkMode()
 
 void App::setBlockVisible(const QString &id, bool visible)
 {
-    if (id == QLatin1String("frow"))
+    if (id == QLatin1String(blocks::kFrow))
         settings_.showFrow = visible;
-    else if (id == QLatin1String("numpad"))
+    else if (id == QLatin1String(blocks::kNumpad))
         settings_.showNumpad = visible;
     else
         return;
@@ -344,11 +329,11 @@ void App::applyBlocks()
 {
     QSet<QString> hidden;
     if (!settings_.showFrow) {
-        hidden.insert(QStringLiteral("frow"));
-        hidden.insert(QStringLiteral("frowgap")); // nav/numpad rows that keep level with the F-row
+        hidden.insert(QString::fromLatin1(blocks::kFrow));
+        hidden.insert(QString::fromLatin1(blocks::kFrowGap)); // keeps nav/numpad rows level with the F-row
     }
     if (!settings_.showNumpad)
-        hidden.insert(QStringLiteral("numpad"));
+        hidden.insert(QString::fromLatin1(blocks::kNumpad));
     window_->setHiddenBlocks(hidden);
 }
 
@@ -360,7 +345,7 @@ void App::pushLockStates()
 
 void App::setKeyUnit(int px)
 {
-    settings_.keyUnit = qBound(0, px, 240);
+    settings_.keyUnit = qBound(limits::minKeyUnitPx, px, limits::maxKeyUnitPx);
     window_->setKeyUnit(settings_.keyUnit);
     window_->rebuild();
     saveSettingsSoon();
@@ -398,7 +383,7 @@ void App::setShowIndicators(bool on)
 
 void App::setStickyTimeoutMs(int ms)
 {
-    settings_.stickyTimeoutMs = qBound(0, ms, 10000);
+    settings_.stickyTimeoutMs = qBound(limits::minStickyTimeoutMs, ms, limits::maxStickyTimeoutMs);
     machine_->setStickyTimeoutMs(settings_.stickyTimeoutMs);
     saveSettingsSoon();
 }
@@ -431,7 +416,7 @@ void App::setLayoutId(const QString &id)
 
 void App::setScale(double scale)
 {
-    settings_.scale = qBound(0.5, scale, 3.0);
+    settings_.scale = qBound(limits::minScale, scale, limits::maxScale);
     window_->setScale(settings_.scale);
     window_->rebuild();
     saveSettingsSoon();

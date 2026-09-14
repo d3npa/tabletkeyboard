@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "ui/titlebar.h"
 
 #include <QFontMetrics>
@@ -7,6 +9,16 @@
 #include <QPainter>
 
 namespace osk {
+
+namespace {
+
+// Scale a base pixel value and clamp it to a readable minimum.
+int scaledPx(int basePx, double scale, int minPx = 0)
+{
+    return qMax(minPx, qRound(basePx * scale));
+}
+
+} // namespace
 
 BarButton::BarButton(const QString &text, QWidget *parent) : QWidget(parent), text_(text)
 {
@@ -36,10 +48,10 @@ void BarButton::applyColors(const QColor &textColor, const QColor &hoverColor, d
 void BarButton::updateSize()
 {
     QFont font = this->font();
-    font.setPixelSize(qMax(8, qRound(13 * scale_)));
+    font.setPixelSize(scaledPx(13, scale_, 8));
     const QFontMetrics metrics(font);
-    const int width = metrics.horizontalAdvance(text_) + qRound(18 * scale_);
-    const int height = qMax(qRound(20 * scale_), metrics.height() + qRound(6 * scale_));
+    const int width = metrics.horizontalAdvance(text_) + scaledPx(18, scale_);
+    const int height = qMax(scaledPx(20, scale_), metrics.height() + scaledPx(6, scale_));
     setFixedSize(width, height);
 }
 
@@ -53,7 +65,7 @@ void BarButton::paintEvent(QPaintEvent *)
         painter.drawRoundedRect(rect(), 3 * scale_, 3 * scale_);
     }
     QFont font = this->font();
-    font.setPixelSize(qMax(8, qRound(13 * scale_)));
+    font.setPixelSize(scaledPx(13, scale_, 8));
     painter.setFont(font);
     painter.setPen(textColor_);
     painter.drawText(rect(), Qt::AlignCenter, text_);
@@ -101,7 +113,7 @@ void BarButton::leaveEvent(QEvent *event)
 
 LockLeds::LockLeds(QWidget *parent) : QWidget(parent)
 {
-    setToolTip(tr("Num Lock · Caps Lock · Scroll Lock"));
+    setToolTip(QStringLiteral("Num Lock · Caps Lock · Scroll Lock"));
     on_ = QColor(0x4c, 0xaf, 0x50);
     off_ = QColor(0x8a, 0x8a, 0x8a);
     text_ = QColor(0x1a, 0x1a, 0x1a);
@@ -133,8 +145,8 @@ void LockLeds::setStates(bool num, bool caps, bool scroll)
 
 void LockLeds::updateSize()
 {
-    const int pill = qMax(10, qRound(14 * scale_));
-    const int gap = qMax(2, qRound(4 * scale_));
+    const int pill = scaledPx(14, scale_, 10);
+    const int gap = scaledPx(4, scale_, 2);
     setFixedSize(3 * pill + 2 * gap, pill);
 }
 
@@ -143,8 +155,8 @@ void LockLeds::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
 
-    const int pill = qMax(10, qRound(14 * scale_));
-    const int gap = qMax(2, qRound(4 * scale_));
+    const int pill = scaledPx(14, scale_, 10);
+    const int gap = scaledPx(4, scale_, 2);
     QFont font = this->font();
     font.setPixelSize(qMax(6, qRound(pill * 0.7)));
     painter.setFont(font);
@@ -166,7 +178,7 @@ TitleBar::TitleBar(QWidget *parent) : QWidget(parent)
     modeButton_ = new BarButton(QStringLiteral("Full"), this);
     languageButton_ = new BarButton(QStringLiteral("EN"), this);
     settingsButton_ = new BarButton(QStringLiteral("⚙"), this);
-    settingsButton_->setToolTip(tr("Settings"));
+    settingsButton_->setToolTip(QStringLiteral("Settings"));
     darkButton_ = new BarButton(QStringLiteral("Dark"), this);
     hideButton_ = new BarButton(QStringLiteral("⌄"), this);
     leds_ = new LockLeds(this);
@@ -222,7 +234,7 @@ void TitleBar::setStatus(const QString &layoutName, const QString &modeName, boo
 {
     modeButton_->setText(modeName);
     languageButton_->setText(layoutName);
-    darkButton_->setText(darkMode ? tr("Dark") : tr("Light"));
+    darkButton_->setText(darkMode ? QStringLiteral("Dark") : QStringLiteral("Light"));
     if (inputAvailable) {
         warningLabel_->hide();
     } else {

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "platform/x11/window_x11.h"
 
 #include <X11/Xatom.h>
@@ -68,7 +70,7 @@ void X11WindowAdapter::setOnAllDesktops(quintptr windowId, bool on)
 void X11WindowAdapter::sendNetWmStates(Window window, const QVector<QString> &states, bool add)
 {
     for (int i = 0; i < states.size(); i += 2) {
-        const QString first = states.at(i);
+        const QString &first = states.at(i);
         const QString second = (i + 1 < states.size()) ? states.at(i + 1) : QString();
         sendNetWmStateMessage(window, first, second, add);
     }

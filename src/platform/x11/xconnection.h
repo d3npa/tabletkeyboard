@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #pragma once
 
 #include <QObject>
@@ -24,7 +26,6 @@ public:
     ~X11Connection() override;
 
     bool open(QString *error);
-    bool isOpen() const { return display_ != nullptr; }
     Display *display() const { return display_; }
 
     bool xtestAvailable() const { return xtestOk_; }

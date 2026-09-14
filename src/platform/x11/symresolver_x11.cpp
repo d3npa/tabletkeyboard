@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "platform/x11/symresolver_x11.h"
 
 #include <X11/Xlib.h>
@@ -16,14 +18,6 @@ bool XlibKeysymResolver::fromName(const QString &name, quint32 *keysym) const
     if (keysym)
         *keysym = quint32(resolved);
     return true;
-}
-
-QString XlibKeysymResolver::toName(quint32 keysym) const
-{
-    if (keysym == 0)
-        return QString();
-    const char *name = XKeysymToString(KeySym(keysym));
-    return name ? QString::fromLatin1(name) : QString();
 }
 
 } // namespace osk
