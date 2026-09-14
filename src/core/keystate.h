@@ -47,8 +47,10 @@ public:
 
     bool capsOn() const { return capsOn_; }
     bool numOn() const { return numOn_; }
+    bool scrollOn() const { return scrollOn_; }
     void setCapsOn(bool on);
     void setNumOn(bool on);
+    void setScrollOn(bool on);
 
     void setZenkakuOnLangSwitch(bool on) { zenkakuOnLangSwitch_ = on; }
     void setStickyTimeoutMs(int ms) { stickyTimeoutMs_ = ms; }
@@ -97,6 +99,7 @@ private:
     QHash<QString, quint32> modKeysyms_;
     bool capsOn_ = false;
     bool numOn_ = false;
+    bool scrollOn_ = false;
     bool zenkakuOnLangSwitch_ = false;
     int stickyTimeoutMs_ = 0;
     int repeatDelayMs_ = 450;

@@ -9,8 +9,9 @@
 namespace osk {
 
 KeyButton::KeyButton(const KeyDef &key, KeyStateMachine *machine, const ThemePainter *painter, double uiScale,
-                     const QSize &size, const QRect &bodyRect, QWidget *parent)
-    : QWidget(parent), key_(key), machine_(machine), painter_(painter), scale_(uiScale), bodyRect_(bodyRect)
+                     bool showKana, const QSize &size, const QRect &bodyRect, QWidget *parent)
+    : QWidget(parent), key_(key), machine_(machine), painter_(painter), scale_(uiScale), showKana_(showKana),
+      bodyRect_(bodyRect)
 {
     setFixedSize(size);
 }
@@ -23,6 +24,8 @@ bool KeyButton::isActive() const
         return machine_->capsOn();
     if (key_.indicator == QLatin1String("num"))
         return machine_->numOn();
+    if (key_.indicator == QLatin1String("scroll"))
+        return machine_->scrollOn();
     return false;
 }
 
@@ -62,6 +65,7 @@ void KeyButton::paintEvent(QPaintEvent *)
     KeyVisual visual;
     visual.label = displayLabel();
     visual.sublabel = subLabel();
+    visual.kana = showKana_ ? key_.kana : QString();
     visual.hovered = hovered_;
     visual.pressed = pressed_;
     visual.active = isActive();

@@ -11,27 +11,35 @@ only uses ICCCM/EWMH + XTEST.
 ## Features
 
 - **Data-driven layouts**: `us` and `jp106` ship as JSON, each with a `full`
-  mode (desktop keyboard, F-row, nav cluster, numpad) and a `simple` mode
-  (thumb typing with a symbols layer). JIS Return, including the tall stepped
-  keycap, is described by data (`height`, `topWidth`).
+  mode (desktop keyboard, F-row, Print/Scroll/Pause + nav cluster, numpad) and a
+  `simple` mode (thumb typing with a symbols layer). JIS Return, including the
+  tall stepped keycap, is described by data (`height`, `topWidth`); jp106 also
+  carries the printed kana legends (`kana`), shown in each key's corner and
+  toggleable.
 - **Dark by default**, with the light/dark theme pair, the F-row and the numpad
-  as live toggles (title bar, tray, CLI, config file). The F-row is also
-  reachable as an **Fn layer**: Fn + the number row sends F1–F12 and Esc.
+  as live toggles (settings dialog, title bar, tray, CLI, config file). The
+  F-row is also reachable as an **Fn layer**: Fn + the number row sends F1–F12
+  and Esc.
+- **Settings dialog** (title-bar `⚙` or tray → *Settings…*): dark mode, theme
+  per slot, key size, scale, block visibility, kana legends, lock indicators,
+  sticky timeout, 半角/全角 coupling and start-at-login. Every control applies
+  live, and the dialog is non-modal so the keyboard stays usable behind it.
 - **Sticky modifiers**: Shift/Ctrl/Alt/Super/AltGr — tap once for one-shot, tap
-  again or long-press to lock; state is visible on the key. CapsLock/NumLock
-  are read from the X server (`XkbStateNotify`) and shown truthfully. Fn is
-  OSK-local: it changes which keysym a key sends and injects nothing by itself.
+  again or long-press to lock; state is visible on the key. CapsLock/NumLock/
+  ScrollLock are read from the X server (`XkbStateNotify`) and shown truthfully
+  — lit keys plus three pills in the title bar. Fn is OSK-local: it changes
+  which keysym a key sends and injects nothing by itself.
 - **Key size is configurable** (`general/keyUnit`, px per key unit), defaulting
   to 72 px — roughly double v1, and still capped by the fit-to-screen width.
 - **Floating focusless window**: frameless, always-on-top, `WM_HINTS.input =
   False`, skip-taskbar, sticky across desktops. Drag anywhere on the bar or the
   gaps; the position is remembered per screen. The window never takes focus, so
   injected keys always land in the application you were typing in.
-- **Themes**: JSON (`win10-dark` default, `win10` light, `minimal`);
-  custom-painted keys, no stylesheet magic.
+- **Themes**: JSON (`win10-dark` default, `win10` light, `minimal`, and the
+  champagne-gold `letsnote-gold`); custom-painted keys, no stylesheet magic.
 - **Tray icon** (`QSystemTrayIcon`; on X11 this is an XEmbed item, which Plasma
   bridges to its SNI tray through `xembedsniproxy`): show/hide, mode, language,
-  dark mode, blocks, theme, scale, start-at-login, quit.
+  dark mode, blocks, theme, scale, settings, start-at-login, quit.
 - **Single instance**: a second invocation forwards its command line to the
   running instance.
 - **Key hold repeats** (Backspace, arrows, …), hold-to-lock modifiers, and an
@@ -100,6 +108,8 @@ arguments and exits.
 | `theme/darkMode` | `true` | dark theme on |
 | `theme/lightTheme`, `theme/darkTheme` | `win10`, `win10-dark` | theme id per mode |
 | `blocks/frow`, `blocks/numpad` | `false` | show the F1–F12 row / the numpad block |
+| `keys/kana` | `true` | show the layouts' printed kana legends |
+| `keys/indicators` | `true` | show the Num/Caps/Scroll pills in the title bar |
 | `position/<screen>` | – | window position per screen name |
 
 `general/theme` from v1 is ignored; the theme is now per light/dark slot.

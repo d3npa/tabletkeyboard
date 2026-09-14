@@ -45,6 +45,15 @@ public:
     // Absolute key size in px; 0 = the theme's own key_unit.
     void setKeyUnit(int px);
 
+    // Paints the layouts' kana legends on the keys ("keys/kana").
+    void setShowKana(bool on);
+
+    // Shows the title bar's Num/Caps/Scroll indicator pills.
+    void setShowIndicators(bool on);
+
+    // Title-bar lock indicators, fed from the state machine's X lock state.
+    void setLockStates(bool num, bool caps, bool scroll);
+
     // Rebuilds the key grid (mode/layer/layout/theme changes). Deferred, so it
     // is safe to call from a key's own event handler.
     void rebuild();
@@ -62,6 +71,7 @@ signals:
     void hideRequested();
     void positionChanged(const QPoint &pos, const QString &screenName);
     void darkModeToggleRequested();
+    void settingsRequested();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -93,6 +103,7 @@ private:
     double unit_ = 44.0;
     int keyUnit_ = 0;
     bool darkMode_ = true;
+    bool showKana_ = true;
     bool inputAvailable_ = true;
     QString inputWarning_;
     bool rebuildPending_ = false;

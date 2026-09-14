@@ -83,6 +83,35 @@ Notes:
   factor, so the default 72 px is 144 physical px ≈ 38 mm there; `keyUnit=36`
   gives ≈19 mm. See the README's "Sizing for touch".
 
+## v3 pass (kana legends, lock indicators, Print/Scroll/Pause, settings dialog, gold theme)
+
+Same harness (Xvfb 1920×1080 and 2880×1920 with `QT_SCREEN_SCALE_FACTORS=2`
+for the 2× case, `xev` as the receiver, plus the target device with KWin).
+Screenshots are `xwd` captures of the OSK window; pixels are compared
+programmatically.
+
+| Scenario | Expectation | Result |
+|---|---|---|
+| Fresh config, jp106 `--show` | window 1338×404; kana (ぬ/ふ/あ/…/ろ) in the bottom-right corner of exactly the 48 keys that carry them, nothing else changed (diff of the kana-on/off renders: 1758 px, all inside those corners) | pass |
+| `[keys] kana=false` and the dialog's "Show kana on keys" | kana corners empty; same 48-key diff, `keys/kana=false` written | pass |
+| jp106 nav row | PrtSc/ScrLk/Pause sit directly above Ins/Home/PgUp and level with the number row (nav column's first key row == number row). With `--blocks frow` they drop exactly one row (window 404 → 478) | pass |
+| Tap PrtSc / ScrLk / Pause | `keycode 107 (keysym 0xff61, Print)`, `keycode 78 (0xff14, Scroll_Lock)`, `keycode 127 (0xff13, Pause)`, each `synthetic NO` | pass |
+| Return hit areas after the extra gap | body centre, upper part and the 2 px strip below the number row all type `0xff0d, Return`; the notch still types `0x5d, bracketright` | pass |
+| Return gap | rendered gap to `[`, `]` and the row above is 2 × the standard gap (4 px at 1×, 8 px at the device's 2×) | pass |
+| Indicator pills, `us` Caps key | the `A` pill turns `led_on`; the Caps key itself takes the `mod_active` fill; tapping again reverts both | pass |
+| Indicator pills, numpad `Num` key | the `1` pill lights `led_on` / dark on the second tap | pass |
+| Scroll pill with `xmodmap -e 'add mod3 = Scroll_Lock'` at runtime | the `S` pill lights after tapping ScrLk (masks re-read on `XkbMapNotify`) and goes dark again after `remove mod3`; with `mod3` unbound it stays dark while the key still sends `Scroll_Lock` | pass |
+| `keys/indicators=false` (dialog) | all three pills disappear (pill-coloured pixels in the bar: 409 → 15) | pass |
+| Title-bar `⚙` | opens the "Keyboard settings" dialog above the keyboard; the glyph renders as a gear, not a missing-glyph box | pass |
+| Dialog: kana off / key size 100 / dark theme = `letsnote-gold` / indicators off | each control applies live: kana corner diff, window 1338×404 → 1863×563, key faces turn champagne gold (217,202,167), pills vanish; every change lands in the config file | pass |
+| `--light --theme letsnote-gold` | champagne-gold keys (`#efe6cd`/`#dccaa2`) on the warm dark base (`#1d1a15`, bar `#2a2620`), `--check-layout` clean | pass |
+| Device (KWin, 2× scaling, jp106) | v3 build: 2676×808 physical window; render matches the local 2× render in 99.7 % of pixels (rest is font antialiasing), kana + PrtSc row + three pills present | pass |
+| Unit tests | `tst_layout` (kana, nav row, stepped Return), `tst_geometry` (Return gaps, cluster alignment), `tst_theme` (gold) pass on Qt 5.15.19 (dev) and Qt 5.15.3 (target) | pass |
+
+Not covered headlessly: the tray's `Settings…` entry (no XEmbed/SNI tray owner
+in Xvfb — the action is a one-liner onto the same `App::showSettings` that the
+`⚙` button exercises).
+
 ## Performance targets
 
 | Target | Requirement | Measured |

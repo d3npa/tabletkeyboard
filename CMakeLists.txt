@@ -77,6 +77,8 @@ add_executable(tabletkeyboard
     src/app/icon.cpp
     src/app/settings.h
     src/app/settings.cpp
+    src/app/settingsdialog.h
+    src/app/settingsdialog.cpp
     src/app/singleinstance.h
     src/app/singleinstance.cpp
     src/app/tray.h

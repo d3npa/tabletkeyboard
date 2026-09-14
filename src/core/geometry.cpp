@@ -71,10 +71,18 @@ LayerGeometry computeLayerGeometry(const QVector<const Block *> &blocks, const Q
                 keyPlacement.rect = QRect(x + keyX, y, width, height);
 
                 if (key.topWidth > key.width) {
-                    const int bodyWidth = qRound(key.width * metrics.unit);
-                    const int topHeight = qRound(metrics.unit) + metrics.gap;
-                    keyPlacement.bodyRect = QRect(x + keyX + (width - bodyWidth), y + topHeight, bodyWidth,
-                                                  height - topHeight);
+                    // Stepped key (JIS Return): the wide part sits right under
+                    // the row above and its step reads as jammed against the
+                    // flat neighbours, so the shape keeps a second gap on its
+                    // left and at its top. The right and bottom edges stay on
+                    // the cell, which keeps the row ends aligned.
+                    const int inset = metrics.gap;
+                    keyPlacement.rect.adjust(inset, inset, 0, 0);
+                    const int bodyWidth = qRound(key.width * metrics.unit) - inset;
+                    const int topHeight = qRound(metrics.unit) + metrics.gap - inset;
+                    keyPlacement.bodyRect = QRect(keyPlacement.rect.right() - bodyWidth + 1,
+                                                  keyPlacement.rect.y() + topHeight, bodyWidth,
+                                                  keyPlacement.rect.height() - topHeight);
                 }
 
                 placement.keys.append(keyPlacement);

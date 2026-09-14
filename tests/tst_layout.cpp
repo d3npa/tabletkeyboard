@@ -31,6 +31,44 @@ const KeyDef *findKey(const LayoutSet &set, const QString &modeId, const QString
     return nullptr;
 }
 
+// First key of the layer whose label matches, whatever its type.
+const KeyDef *findKeyByLabel(const LayoutSet &set, const QString &modeId, const QString &layerName,
+                             const QString &label)
+{
+    const Mode *mode = set.mode(modeId);
+    const Layer *layer = mode ? mode->layer(layerName) : nullptr;
+    if (!layer)
+        return nullptr;
+    for (const Block &block : layer->blocks) {
+        for (const KeyRow &row : block.rows) {
+            for (const KeyDef &key : row.keys) {
+                if (key.label == label)
+                    return &key;
+            }
+        }
+    }
+    return nullptr;
+}
+
+// label -> printed kana for every key that carries one.
+QHash<QString, QString> kanaByLabel(const LayoutSet &set, const QString &modeId, const QString &layerName)
+{
+    QHash<QString, QString> kana;
+    const Mode *mode = set.mode(modeId);
+    const Layer *layer = mode ? mode->layer(layerName) : nullptr;
+    if (!layer)
+        return kana;
+    for (const Block &block : layer->blocks) {
+        for (const KeyRow &row : block.rows) {
+            for (const KeyDef &key : row.keys) {
+                if (!key.kana.isEmpty())
+                    kana.insert(key.label, key.kana);
+            }
+        }
+    }
+    return kana;
+}
+
 } // namespace
 
 class TestLayout : public QObject
@@ -40,6 +78,8 @@ private slots:
     void loadsShippedLayouts();
     void resolvesEveryKeysym();
     void parsesSteppedKeysAndFn();
+    void jp106KanaLegends();
+    void navClusterHasPrintKeys();
     void rejectsMalformedJson();
     void rejectsUnknownKeysym();
     void rejectsUnknownFnKeysym();
@@ -134,6 +174,95 @@ void TestLayout::parsesSteppedKeysAndFn()
     QCOMPARE(one->fn, QStringLiteral("F1"));
     QVERIFY(one->fnCode != 0);
     QCOMPARE(one->fnLabel, QStringLiteral("F1")); // no fnLabel in the file: the keysym name is used
+}
+
+void TestLayout::jp106KanaLegends()
+{
+    LayoutSet jp;
+    QString error;
+    QVERIFY2(load(QStringLiteral("jp106.json"), &jp, &error), qPrintable(error));
+
+    const QHash<QString, QString> kana = kanaByLabel(jp, QStringLiteral("full"), QStringLiteral("main"));
+    const QHash<QString, QString> expected = {
+        { QStringLiteral("1"), QStringLiteral("ぬ") },
+        { QStringLiteral("0"), QStringLiteral("わ") },
+        { QStringLiteral("-"), QStringLiteral("ほ") },
+        { QStringLiteral("^"), QStringLiteral("へ") },
+        { QStringLiteral("¥"), QStringLiteral("ー") },
+        { QStringLiteral("Q"), QStringLiteral("た") },
+        { QStringLiteral("@"), QStringLiteral("゛") }, // voicedsound, AD11
+        { QStringLiteral("["), QStringLiteral("゜") }, // semivoicedsound, AD12
+        { QStringLiteral("A"), QStringLiteral("ち") },
+        { QStringLiteral(";"), QStringLiteral("れ") },
+        { QStringLiteral("]"), QStringLiteral("む") },
+        { QStringLiteral("Z"), QStringLiteral("つ") },
+        { QStringLiteral(","), QStringLiteral("ね") },
+        { QStringLiteral("/"), QStringLiteral("め") },
+        { QStringLiteral("ろ"), QStringLiteral("ろ") },
+    };
+    for (auto it = expected.constBegin(); it != expected.constEnd(); ++it)
+        QCOMPARE(kana.value(it.key()), it.value());
+
+    // Keys that only exist on a Latin or IME legend stay bare.
+    for (const QString &label : { QStringLiteral("半/全"), QStringLiteral("Tab"), QStringLiteral("Shift"),
+                                  QStringLiteral("Ins"), QStringLiteral("変換") }) {
+        const KeyDef *key = findKeyByLabel(jp, QStringLiteral("full"), QStringLiteral("main"), label);
+        QVERIFY2(key, qPrintable(label));
+        QVERIFY2(key->kana.isEmpty(), qPrintable(label));
+    }
+
+    // The thumb layout is a different arrangement with no photo reference.
+    QVERIFY(kanaByLabel(jp, QStringLiteral("simple"), QStringLiteral("main")).isEmpty());
+}
+
+void TestLayout::navClusterHasPrintKeys()
+{
+    XlibKeysymResolver resolver;
+    for (const QString &id : { QStringLiteral("us"), QStringLiteral("jp106") }) {
+        LayoutSet set;
+        QString error;
+        QVERIFY2(load(id + QStringLiteral(".json"), &set, &error), qPrintable(error));
+
+        const Mode *mode = set.mode(QStringLiteral("full"));
+        QVERIFY(mode);
+        const Layer *layer = mode->primaryLayer();
+        QVERIFY(layer);
+
+        const Block *nav = nullptr;
+        const Block *numpad = nullptr;
+        for (const Block &block : layer->blocks) {
+            if (block.id == QLatin1String("nav"))
+                nav = &block;
+            else if (block.id == QLatin1String("numpad"))
+                numpad = &block;
+        }
+        QVERIFY(nav);
+        QVERIFY(numpad);
+        QVERIFY(!nav->rows.isEmpty());
+        QVERIFY(!numpad->rows.isEmpty());
+        QCOMPARE(nav->rows.first().id, QStringLiteral("frowgap"));
+        QCOMPARE(numpad->rows.first().id, QStringLiteral("frowgap"));
+
+        // Print/Scroll/Pause sit directly under the gutter row.
+        QVERIFY(nav->rows.size() > 1);
+        const KeyRow &row = nav->rows.at(1);
+        QCOMPARE(row.keys.size(), 3);
+
+        quint32 print = 0, sysReq = 0, scroll = 0, pause = 0, brk = 0;
+        QVERIFY(resolver.fromName(QStringLiteral("Print"), &print));
+        QVERIFY(resolver.fromName(QStringLiteral("Sys_Req"), &sysReq));
+        QVERIFY(resolver.fromName(QStringLiteral("Scroll_Lock"), &scroll));
+        QVERIFY(resolver.fromName(QStringLiteral("Pause"), &pause));
+        QVERIFY(resolver.fromName(QStringLiteral("Break"), &brk));
+
+        QCOMPARE(row.keys.at(0).symCode, print);
+        QCOMPARE(row.keys.at(0).shiftedCode, sysReq);
+        QCOMPARE(row.keys.at(1).symCode, scroll);
+        QCOMPARE(row.keys.at(1).indicator, QStringLiteral("scroll"));
+        QVERIFY(!row.keys.at(1).repeat);
+        QCOMPARE(row.keys.at(2).symCode, pause);
+        QCOMPARE(row.keys.at(2).shiftedCode, brk);
+    }
 }
 
 void TestLayout::rejectsMalformedJson()

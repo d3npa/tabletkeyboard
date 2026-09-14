@@ -34,6 +34,7 @@ KeyboardWindow::KeyboardWindow(KeyStateMachine *machine, const ThemeLibrary *the
     connect(titleBar_, &TitleBar::dragMoved, this, &KeyboardWindow::dragTo);
     connect(titleBar_, &TitleBar::dragFinished, this, &KeyboardWindow::endDrag);
     connect(titleBar_, &TitleBar::toggleDarkModeRequested, this, &KeyboardWindow::darkModeToggleRequested);
+    connect(titleBar_, &TitleBar::settingsRequested, this, &KeyboardWindow::settingsRequested);
 
     rootLayout_ = new QVBoxLayout(this);
     rootLayout_->setContentsMargins(0, 0, 0, 0);
@@ -72,6 +73,23 @@ void KeyboardWindow::setDarkMode(bool on)
 void KeyboardWindow::setKeyUnit(int px)
 {
     keyUnit_ = qMax(0, px);
+}
+
+void KeyboardWindow::setShowKana(bool on)
+{
+    showKana_ = on;
+}
+
+void KeyboardWindow::setShowIndicators(bool on)
+{
+    if (titleBar_)
+        titleBar_->setShowIndicators(on);
+}
+
+void KeyboardWindow::setLockStates(bool num, bool caps, bool scroll)
+{
+    if (titleBar_)
+        titleBar_->setLockStates(num, caps, scroll);
 }
 
 void KeyboardWindow::setInputStatus(bool available, const QString &reason)
@@ -182,7 +200,7 @@ QWidget *KeyboardWindow::buildContent(const QVector<const Block *> &blocks, int 
                 widget = new QWidget(content);
                 widget->setAttribute(Qt::WA_TransparentForMouseEvents, true);
             } else {
-                widget = new KeyButton(*placement.key, machine_, painter_.get(), uiScale,
+                widget = new KeyButton(*placement.key, machine_, painter_.get(), uiScale, showKana_,
                                        placement.rect.size(),
                                        placement.bodyRect.translated(-placement.rect.topLeft()), content);
             }

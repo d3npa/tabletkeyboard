@@ -88,12 +88,16 @@ void ThemePainter::paintKey(QPainter &painter, const QRect &rect, const QRect &b
 
     QFont font(theme_.fontFamily);
     font.setPixelSize(qMax(6, qRound(theme_.fontPx * scale)));
-    if (!visual.sublabel.isEmpty()) {
+    const bool hasSmallText = !visual.sublabel.isEmpty() || !visual.kana.isEmpty();
+    if (hasSmallText) {
         QFont small(theme_.fontFamily);
         small.setPixelSize(qMax(5, qRound(theme_.labelPx * scale)));
         painter.setFont(small);
         painter.setPen(color(theme_.keyText));
-        painter.drawText(textRect, Qt::AlignLeft | Qt::AlignTop, visual.sublabel);
+        if (!visual.sublabel.isEmpty())
+            painter.drawText(textRect, Qt::AlignLeft | Qt::AlignTop, visual.sublabel);
+        if (!visual.kana.isEmpty())
+            painter.drawText(textRect, Qt::AlignRight | Qt::AlignBottom, visual.kana);
     }
 
     if (!visual.label.isEmpty()) {

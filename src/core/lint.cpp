@@ -124,6 +124,8 @@ QVector<LintIssue> Lint::check(const LayoutSet &set, const KeysymResolver *resol
 
                         if (!key.indicator.isEmpty() && key.type != KeyDef::Key)
                             addWarning(&issues, keyPath, QStringLiteral("indicator only applies to type \"key\""));
+                        if (!key.kana.isEmpty() && key.type != KeyDef::Key)
+                            addWarning(&issues, keyPath, QStringLiteral("kana only applies to type \"key\""));
                     }
                 }
             }
@@ -161,6 +163,8 @@ QVector<LintIssue> Lint::check(const ThemeSpec &theme)
         { "accent", theme.accent },
         { "bar_bg", theme.barBg },
         { "window_bg", theme.windowBg },
+        { "led_on", theme.ledOn },
+        { "led_off", theme.ledOff },
     };
     for (const auto &color : colors) {
         if (!isValidColor(color.value))

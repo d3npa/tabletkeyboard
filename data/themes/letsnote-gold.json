@@ -1,0 +1,31 @@
+{
+  "id": "letsnote-gold",
+  "name": "Let's Note 25th Gold",
+  "colors": {
+    "key_top": "#efe6cd",
+    "key_bottom": "#dccaa2",
+    "key_border": "#b3a074",
+    "key_text": "#2f2a20",
+    "key_pressed_top": "#cdba91",
+    "key_pressed_bottom": "#bda87c",
+    "key_hover": "#f6efdc",
+    "mod_active": "#d9c48d",
+    "accent": "#a8853a",
+    "bar_bg": "#2a2620",
+    "window_bg": "#1d1a15",
+    "window_opacity": 0.98,
+    "led_on": "#d9b45c",
+    "led_off": "#6b6558"
+  },
+  "metrics": {
+    "radius": 3,
+    "border": 1,
+    "gap": 2,
+    "padding": 4,
+    "bar_height": 26,
+    "font_family": "Noto Sans",
+    "font_px": 15,
+    "label_px": 11,
+    "key_unit": 72
+  }
+}

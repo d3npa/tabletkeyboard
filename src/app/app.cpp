@@ -2,6 +2,7 @@
 
 #include "app/autostart.h"
 #include "app/icon.h"
+#include "app/settingsdialog.h"
 #include "app/tray.h"
 #include "core/layout.h"
 #include "core/theme.h"
@@ -74,6 +75,8 @@ App::InitResult App::init(QString *error)
     window_->setThemeId(settings_.themeId());
     window_->setDarkMode(settings_.darkMode);
     window_->setKeyUnit(settings_.keyUnit);
+    window_->setShowKana(settings_.showKana);
+    window_->setShowIndicators(settings_.showIndicators);
     applyBlocks();
     window_->setInputStatus(input_->available(), input_->unavailableReason());
     window_->rebuild();
@@ -81,9 +84,20 @@ App::InitResult App::init(QString *error)
     connect(machine_, &KeyStateMachine::output, this, &App::onOutput);
     connect(window_, &KeyboardWindow::hideRequested, this, &App::hideKeyboard);
     connect(window_, &KeyboardWindow::darkModeToggleRequested, this, &App::toggleDarkMode);
+    connect(window_, &KeyboardWindow::settingsRequested, this, &App::showSettings);
     connect(window_, &KeyboardWindow::positionChanged, this, &App::onWindowPositionChanged);
-    connect(&xconn_, &X11Connection::capsLockChanged, machine_, &KeyStateMachine::setCapsOn);
-    connect(&xconn_, &X11Connection::numLockChanged, machine_, &KeyStateMachine::setNumOn);
+    connect(&xconn_, &X11Connection::capsLockChanged, this, [this](bool on) {
+        machine_->setCapsOn(on);
+        pushLockStates();
+    });
+    connect(&xconn_, &X11Connection::numLockChanged, this, [this](bool on) {
+        machine_->setNumOn(on);
+        pushLockStates();
+    });
+    connect(&xconn_, &X11Connection::scrollLockChanged, this, [this](bool on) {
+        machine_->setScrollOn(on);
+        pushLockStates();
+    });
     connect(&xconn_, &X11Connection::keymapChanged, this, [this]() {
         if (input_)
             input_->syncKeymap();
@@ -92,6 +106,8 @@ App::InitResult App::init(QString *error)
 
     machine_->setCapsOn(xconn_.capsLockOn());
     machine_->setNumOn(xconn_.numLockOn());
+    machine_->setScrollOn(xconn_.scrollLockOn());
+    pushLockStates();
 
     QApplication::setWindowIcon(appIcon());
 
@@ -313,11 +329,80 @@ void App::setBlockVisible(const QString &id, bool visible)
 void App::applyBlocks()
 {
     QSet<QString> hidden;
-    if (!settings_.showFrow)
+    if (!settings_.showFrow) {
         hidden.insert(QStringLiteral("frow"));
+        hidden.insert(QStringLiteral("frowgap")); // nav/numpad rows that keep level with the F-row
+    }
     if (!settings_.showNumpad)
         hidden.insert(QStringLiteral("numpad"));
     window_->setHiddenBlocks(hidden);
+}
+
+void App::pushLockStates()
+{
+    if (window_ && machine_)
+        window_->setLockStates(machine_->numOn(), machine_->capsOn(), machine_->scrollOn());
+}
+
+void App::setKeyUnit(int px)
+{
+    settings_.keyUnit = qBound(0, px, 240);
+    window_->setKeyUnit(settings_.keyUnit);
+    window_->rebuild();
+    saveSettingsSoon();
+}
+
+void App::setThemeForSlot(bool darkMode, const QString &id)
+{
+    if (!themes_->byId(id))
+        return;
+    if (darkMode)
+        settings_.darkTheme = id;
+    else
+        settings_.lightTheme = id;
+    if (settings_.darkMode == darkMode) {
+        window_->setThemeId(id);
+        window_->rebuild();
+    }
+    saveSettingsSoon();
+}
+
+void App::setShowKana(bool on)
+{
+    settings_.showKana = on;
+    window_->setShowKana(on);
+    window_->rebuild();
+    saveSettingsSoon();
+}
+
+void App::setShowIndicators(bool on)
+{
+    settings_.showIndicators = on;
+    window_->setShowIndicators(on);
+    saveSettingsSoon();
+}
+
+void App::setStickyTimeoutMs(int ms)
+{
+    settings_.stickyTimeoutMs = qBound(0, ms, 10000);
+    machine_->setStickyTimeoutMs(settings_.stickyTimeoutMs);
+    saveSettingsSoon();
+}
+
+void App::setZenkakuOnLangSwitch(bool on)
+{
+    settings_.zenkakuOnLangSwitch = on;
+    machine_->setZenkakuOnLangSwitch(on);
+    saveSettingsSoon();
+}
+
+void App::showSettings()
+{
+    if (!settingsDialog_)
+        settingsDialog_.reset(new SettingsDialog(this));
+    settingsDialog_->show();
+    settingsDialog_->raise();
+    settingsDialog_->activateWindow();
 }
 
 void App::setModeId(const QString &id)

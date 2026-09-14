@@ -37,20 +37,7 @@ bool X11Connection::open(QString *error)
         XkbSelectEvents(display_, XkbUseCoreKbd, XkbStateNotifyMask | XkbMapNotifyMask,
                         XkbStateNotifyMask | XkbMapNotifyMask);
 
-        XModifierKeymap *modifierMap = XGetModifierMapping(display_);
-        const KeyCode numLock = XKeysymToKeycode(display_, XK_Num_Lock);
-        if (modifierMap && numLock) {
-            for (int mod = 0; mod < 8; ++mod) {
-                for (int slot = 0; slot < modifierMap->max_keypermod; ++slot) {
-                    if (modifierMap->modifiermap[mod * modifierMap->max_keypermod + slot] == numLock)
-                        numLockMask_ = 1u << mod;
-                }
-            }
-        }
-        if (modifierMap)
-            XFreeModifiermap(modifierMap);
-        if (!numLockMask_)
-            numLockMask_ = Mod2Mask; // XKB convention
+        readLockMasks();
 
         XkbStateRec state{};
         if (XkbGetState(display_, XkbUseCoreKbd, &state) == Success)
@@ -80,6 +67,14 @@ void X11Connection::processEvents()
             updateLockState(xkbEvent->state.locked_mods);
             break;
         case XkbMapNotify:
+            // `xmodmap -e 'add mod3 = Scroll_Lock'` and friends land here: the
+            // lock masks belong to the map, so re-read them and the state.
+            readLockMasks();
+            {
+                XkbStateRec state{};
+                if (XkbGetState(display_, XkbUseCoreKbd, &state) == Success)
+                    updateLockState(state.locked_mods);
+            }
             emit keymapChanged();
             break;
         default:
@@ -88,10 +83,40 @@ void X11Connection::processEvents()
     }
 }
 
+void X11Connection::readLockMasks()
+{
+    numLockMask_ = 0;
+    scrollLockMask_ = 0;
+
+    XModifierKeymap *modifierMap = XGetModifierMapping(display_);
+    const KeyCode numLock = XKeysymToKeycode(display_, XK_Num_Lock);
+    const KeyCode scrollLock = XKeysymToKeycode(display_, XK_Scroll_Lock);
+    const int perMod = modifierMap ? modifierMap->max_keypermod : 0;
+    for (int mod = 0; modifierMap && mod < 8; ++mod) {
+        for (int slot = 0; slot < perMod; ++slot) {
+            const KeyCode code = modifierMap->modifiermap[mod * perMod + slot];
+            if (!code)
+                continue;
+            if (numLock && code == numLock)
+                numLockMask_ |= 1u << mod;
+            if (scrollLock && code == scrollLock)
+                scrollLockMask_ |= 1u << mod;
+        }
+    }
+    if (modifierMap)
+        XFreeModifiermap(modifierMap);
+
+    // Num Lock has a conventional home even when nothing binds it; Scroll Lock
+    // does not, so an unbound Scroll_Lock simply keeps its indicator dark.
+    if (!numLockMask_)
+        numLockMask_ = Mod2Mask;
+}
+
 void X11Connection::updateLockState(unsigned int lockedMods)
 {
     const bool caps = (lockedMods & LockMask) != 0;
     const bool num = numLockMask_ != 0 && (lockedMods & numLockMask_) != 0;
+    const bool scroll = scrollLockMask_ != 0 && (lockedMods & scrollLockMask_) != 0;
 
     if (caps != capsOn_) {
         capsOn_ = caps;
@@ -100,6 +125,10 @@ void X11Connection::updateLockState(unsigned int lockedMods)
     if (num != numOn_) {
         numOn_ = num;
         emit numLockChanged(num);
+    }
+    if (scroll != scrollOn_) {
+        scrollOn_ = scroll;
+        emit scrollLockChanged(scroll);
     }
 }
 

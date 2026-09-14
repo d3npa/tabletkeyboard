@@ -72,7 +72,9 @@ bool ThemeSpec::fromJson(const QJsonObject &obj, ThemeSpec *out, QString *error)
         || !readColor(colors, "mod_active", &theme.modActive, error)
         || !readColor(colors, "accent", &theme.accent, error)
         || !readColor(colors, "bar_bg", &theme.barBg, error)
-        || !readColor(colors, "window_bg", &theme.windowBg, error))
+        || !readColor(colors, "window_bg", &theme.windowBg, error)
+        || !readColor(colors, "led_on", &theme.ledOn, error)
+        || !readColor(colors, "led_off", &theme.ledOff, error))
         return false;
 
     if (colors.contains(QStringLiteral("window_opacity"))) {

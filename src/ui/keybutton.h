@@ -18,9 +18,9 @@ class KeyButton : public QWidget
 public:
     // `size` is the key's full widget rect, `bodyRect` the lower part of a
     // stepped key (JIS Return) in widget coordinates, or empty for a plain
-    // rectangle.
+    // rectangle. `showKana` paints the key's printed kana legend.
     KeyButton(const KeyDef &key, KeyStateMachine *machine, const ThemePainter *painter, double uiScale,
-              const QSize &size, const QRect &bodyRect, QWidget *parent = nullptr);
+              bool showKana, const QSize &size, const QRect &bodyRect, QWidget *parent = nullptr);
 
     const KeyDef &keyDef() const { return key_; }
 
@@ -41,6 +41,7 @@ private:
     KeyStateMachine *machine_;
     const ThemePainter *painter_;
     double scale_;
+    bool showKana_;
     QRect bodyRect_;
     bool hovered_ = false;
     bool pressed_ = false;

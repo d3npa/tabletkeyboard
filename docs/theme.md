@@ -20,7 +20,9 @@ Files live in `data/themes/` (bundled), `/usr/share/tabletkeyboard/themes/`, or
     "accent": "#0078d7",
     "bar_bg": "#f4f4f4",
     "window_bg": "#e8e8e8",
-    "window_opacity": 1.0
+    "window_opacity": 1.0,
+    "led_on": "#4caf50",
+    "led_off": "#8a8a8a"
   },
   "metrics": {
     "radius": 3,
@@ -50,6 +52,7 @@ Files live in `data/themes/` (bundled), `/usr/share/tabletkeyboard/themes/`, or
 | `bar_bg` | `#f4f4f4` | title bar background |
 | `window_bg` | `#e8e8e8` | window background behind the keys |
 | `window_opacity` | `1.0` | whole-window opacity (0–1) |
+| `led_on`, `led_off` | `#4caf50`, `#8a8a8a` | title-bar Num/Caps/Scroll indicators: lit and dark pill |
 
 ## Metrics
 

@@ -47,7 +47,8 @@ bool parseKeyDef(const QJsonValue &value, const KeysymResolver *resolver, const 
 
     key.repeat = o.value(QStringLiteral("repeat")).toBool(true);
     key.indicator = o.value(QStringLiteral("indicator")).toString();
-    if (!key.indicator.isEmpty() && key.indicator != QLatin1String("caps") && key.indicator != QLatin1String("num"))
+    if (!key.indicator.isEmpty() && key.indicator != QLatin1String("caps") && key.indicator != QLatin1String("num")
+        && key.indicator != QLatin1String("scroll"))
         return fail(error, where + QStringLiteral(": unknown indicator \"%1\"").arg(key.indicator));
     if (!key.indicator.isEmpty())
         key.repeat = false; // never auto-repeat a lock key
@@ -66,6 +67,7 @@ bool parseKeyDef(const QJsonValue &value, const KeysymResolver *resolver, const 
         key.sym = o.value(QStringLiteral("sym")).toString();
         if (key.sym.isEmpty())
             return fail(error, where + QStringLiteral(": key needs a \"sym\""));
+        key.kana = o.value(QStringLiteral("kana")).toString();
         if (resolver && !resolver->fromName(key.sym, &key.symCode))
             return fail(error, where + QStringLiteral(": unknown keysym \"%1\"").arg(key.sym));
         key.shifted = o.value(QStringLiteral("shifted")).toString();

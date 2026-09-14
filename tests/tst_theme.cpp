@@ -25,7 +25,7 @@ QString themePath(const QString &file)
 void TestTheme::loadsShippedThemes()
 {
     for (const QString &id : { QStringLiteral("win10"), QStringLiteral("win10-dark"),
-                               QStringLiteral("minimal") }) {
+                               QStringLiteral("minimal"), QStringLiteral("letsnote-gold") }) {
         ThemeSpec theme;
         QString error;
         QVERIFY2(ThemeSpec::loadFile(themePath(id + QStringLiteral(".json")), &theme, &error),

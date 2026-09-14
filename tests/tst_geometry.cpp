@@ -40,6 +40,7 @@ private slots:
     void jisReturnIsStepped();
     void frowAndNumpadHidden();
     void frowCentredWhenShown();
+    void clustersShiftWithFrow();
     void fitKeyUnitFitsWidth();
     void shippedBlockIds();
 
@@ -77,16 +78,25 @@ void TestGeometry::jisReturnIsStepped()
     const KeyPlacement *ret = findPlacement(geometry, keysym("Return"));
     QVERIFY(ret);
     QVERIFY(!ret->bodyRect.isEmpty());
-    QCOMPARE(ret->rect.width(), 66);  // topWidth 1.5 u
-    QCOMPARE(ret->rect.height(), 90); // 2 rows and the gap between them
-    QCOMPARE(ret->bodyRect.width(), 55); // width 1.25 u
+    QCOMPARE(ret->rect.width(), 64);  // topWidth 1.5 u, inset by one gap on the left
+    QCOMPARE(ret->rect.height(), 88); // 2 rows and the gap between them, less the inset
+    QCOMPARE(ret->bodyRect.width(), 53); // width 1.25 u, less the inset
     QCOMPARE(ret->bodyRect.x(), ret->rect.x() + 11);
     QCOMPARE(ret->bodyRect.right(), ret->rect.right());
     QCOMPARE(ret->bodyRect.bottom(), ret->rect.bottom());
 
+    // The stepped shape keeps a second gap against the keys it sits next to:
+    // `[` to its left, the number row above it, and `]` left of its body.
     const KeyPlacement *bracket = findPlacement(geometry, keysym("bracketleft"));
     QVERIFY(bracket);
-    QCOMPARE(ret->rect.x() - bracket->rect.right() - 1, 2); // exactly one gap apart
+    QCOMPARE(ret->rect.x() - bracket->rect.right() - 1, 2 * 2);
+    const KeyPlacement *yen = findPlacement(geometry, keysym("backslash")); // 1st backslash: ¥, row above
+    QVERIFY(yen);
+    QVERIFY(yen->rect.bottom() < ret->rect.top());
+    QCOMPARE(ret->rect.y() - yen->rect.bottom() - 1, 2 * 2);
+    const KeyPlacement *bracketRight = findPlacement(geometry, keysym("bracketright"));
+    QVERIFY(bracketRight);
+    QCOMPARE(ret->bodyRect.x() - bracketRight->rect.right() - 1, 2 * 2);
 }
 
 void TestGeometry::frowAndNumpadHidden()
@@ -96,12 +106,15 @@ void TestGeometry::frowAndNumpadHidden()
     QVERIFY(!blocks.isEmpty());
 
     const LayerGeometry shown = computeLayerGeometry(blocks, {}, { 44.0, 2 });
-    const LayerGeometry hidden = computeLayerGeometry(blocks, { QStringLiteral("frow"), QStringLiteral("numpad") },
-                                                      { 44.0, 2 });
+    // The app hides the nav/numpad gutter row together with the F-row, so the
+    // side clusters stay level with the main block's number row.
+    const LayerGeometry hidden = computeLayerGeometry(
+            blocks, { QStringLiteral("frow"), QStringLiteral("frowgap"), QStringLiteral("numpad") }, { 44.0, 2 });
 
     QCOMPARE(shown.blocks.size(), 3);
     QCOMPARE(hidden.blocks.size(), 2);
     QCOMPARE(hidden.blocks.first().rect.height(), 228); // 5 rows of 44 px and 4 gaps
+    QCOMPARE(hidden.blocks.at(1).rect.height(), 228);
     QVERIFY(findPlacement(shown, keysym("F1")));
     QVERIFY(!findPlacement(hidden, keysym("F1")));
     QVERIFY(hidden.size.height() < shown.size.height());
@@ -123,7 +136,30 @@ void TestGeometry::frowCentredWhenShown()
     QVERIFY(left);
     QCOMPARE(geometry.blocks.size(), 2);
     QCOMPARE(left->rect.x(), geometry.blocks.first().rect.width() + 2);
-    QCOMPARE(left->rect.y(), 44 + 3 * (44 + 2)); // nav topGap + three rows
+    QCOMPARE(left->rect.y(), 5 * (44 + 2)); // frowgap, PrtSc, Ins, Del and ↑ above the arrows
+}
+
+void TestGeometry::clustersShiftWithFrow()
+{
+    const LayoutSet set = load(QStringLiteral("us"));
+    const QVector<const Block *> blocks = blocksOf(set, QStringLiteral("full"), QStringLiteral("main"));
+    QVERIFY(!blocks.isEmpty());
+
+    // F-row hidden: its gutter row is hidden with it, so the nav cluster (and
+    // the numpad) start on the number row and the main block keeps five rows.
+    const LayerGeometry noFrow = computeLayerGeometry(
+            blocks, { QStringLiteral("frow"), QStringLiteral("frowgap"), QStringLiteral("numpad") }, { 44.0, 2 });
+    const KeyPlacement *print = findPlacement(noFrow, keysym("Print"));
+    QVERIFY(print);
+    QCOMPARE(print->rect.y(), 0);
+    QCOMPARE(noFrow.blocks.first().rect.height(), 5 * 44 + 4 * 2);
+
+    // F-row shown: the gutter row shows too and Print drops exactly one row.
+    const LayerGeometry withFrow = computeLayerGeometry(blocks, { QStringLiteral("numpad") }, { 44.0, 2 });
+    print = findPlacement(withFrow, keysym("Print"));
+    QVERIFY(print);
+    QCOMPARE(print->rect.y(), 44 + 2);
+    QCOMPARE(withFrow.blocks.first().rect.height(), 6 * 44 + 5 * 2);
 }
 
 void TestGeometry::fitKeyUnitFitsWidth()
@@ -157,6 +193,7 @@ void TestGeometry::shippedBlockIds()
         QVERIFY(blockIds.contains(QStringLiteral("nav")));
         QVERIFY(blockIds.contains(QStringLiteral("numpad")));
         QVERIFY(rowIds.contains(QStringLiteral("frow")));
+        QVERIFY(rowIds.contains(QStringLiteral("frowgap")));
     }
 }
 

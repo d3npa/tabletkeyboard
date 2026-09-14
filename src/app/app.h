@@ -18,6 +18,7 @@ namespace osk {
 class InputBackend;
 class KeyboardWindow;
 class LayoutLibrary;
+class SettingsDialog;
 class ThemeLibrary;
 class Tray;
 class WindowAdapter;
@@ -54,6 +55,13 @@ public:
     void setDarkMode(bool on);
     void toggleDarkMode();
     void setBlockVisible(const QString &id, bool visible); // "frow" | "numpad"
+    void setKeyUnit(int px);                               // 0 = the theme's key_unit
+    void setThemeForSlot(bool darkMode, const QString &id); // write one theme slot
+    void setShowKana(bool on);
+    void setShowIndicators(bool on);
+    void setStickyTimeoutMs(int ms);
+    void setZenkakuOnLangSwitch(bool on);
+    void showSettings();
 
     const LayoutLibrary *layouts() const { return layouts_; }
     const ThemeLibrary *themes() const { return themes_; }
@@ -70,6 +78,7 @@ private slots:
 private:
     void saveSettingsSoon();
     void applyBlocks(); // settings -> window
+    void pushLockStates(); // state machine lock state -> title-bar pills
 
     X11Connection xconn_;
     std::unique_ptr<XlibKeysymResolver> resolver_;
@@ -81,6 +90,7 @@ private:
     KeyboardWindow *window_ = nullptr;
     Tray *tray_ = nullptr;
     SingleInstance *single_ = nullptr;
+    std::unique_ptr<SettingsDialog> settingsDialog_;
     AppSettings settings_;
     QTimer *saveTimer_ = nullptr;
     bool trayFallback_ = false;

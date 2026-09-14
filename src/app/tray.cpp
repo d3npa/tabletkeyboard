@@ -102,6 +102,8 @@ void Tray::rebuildMenu()
     connect(autostart, &QAction::toggled, app_, &App::setAutostart);
 
     menu_->addSeparator();
+    QAction *settings = menu_->addAction(tr("Settings…"));
+    connect(settings, &QAction::triggered, app_, &App::showSettings);
     menu_->addAction(tr("Quit"), qApp, &QCoreApplication::quit);
 }
 

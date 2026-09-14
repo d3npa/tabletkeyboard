@@ -28,9 +28,10 @@ name.
 | key | see below |
 
 Blocks and rows may carry an `id`. The application hides the ids `frow` (the
-F1–F12 row) and `numpad` unless the corresponding block toggle is on; other ids
-are authoring aids. A row is either a plain array of keys or an object with an
-`id` and a `keys` array:
+F1–F12 row) and `numpad` unless the corresponding block toggle is on; hiding
+`frow` also hides the `frowgap` rows (see below). Other ids are authoring aids.
+A row is either a plain array of keys or an object with an `id` and a `keys`
+array:
 
 ```json
 {
@@ -43,13 +44,21 @@ are authoring aids. A row is either a plain array of keys or an object with an
         [ {"type":"key","label":"1","sym":"1","shifted":"exclam","fn":"F1"} ]
       ]
     },
-    { "id": "nav", "topGap": 1, "rows": [ /* nav cluster */ ] }
+    {
+      "id": "nav",
+      "rows": [
+        { "id": "frowgap", "keys": [ {"type":"spacer","width":1}, {"type":"spacer","width":1} ] },
+        [ {"type":"key","label":"PrtSc","sym":"Print"} ]
+      ]
+    }
   ]
 }
 ```
 
-`topGap` (in key units) pushes a block down so side clusters line up with the
-main block.
+A block can also be pushed down with `topGap` (in key units), but the shipped
+layouts use a leading `frowgap` spacer row instead: it occupies exactly one row,
+so the cluster stays level with the main block's number row whether or not the
+F-row is shown (the gutter row is hidden together with `frow`).
 
 ## Key fields
 
@@ -65,7 +74,8 @@ main block.
 | `mod` | string | – | for `type: mod`: `shift`, `ctrl`, `alt`, `super`, `altgr`, `fn` |
 | `action` | string | – | for `type: action`: `hide`, `toggle_mode`, `toggle_lang`, `layer` |
 | `layer` | string | – | target layer name when `action` is `layer` |
-| `indicator` | string | – | `caps` or `num`: the key lights up with the X server's lock state |
+| `kana` | string | – | printed kana legend, drawn small in the key's bottom-right corner; display only, never injected |
+| `indicator` | string | – | `caps`, `num` or `scroll`: the key lights up with the X server's lock state |
 | `repeat` | bool | `true` | hold-to-repeat (auto-disabled for indicator keys) |
 | `height` | number | `1` | rows the key spans (stepped keycaps) |
 | `topWidth` | number | `width` | width of the key's first row unit when it is wider than `width` |
@@ -116,6 +126,9 @@ unit, which is what makes the JIS Return L-shaped:
 
 The key is 1.5 units wide in the Tab row and 1.25 units wide in the home row,
 right-aligned, so the step (notch) sits at its lower left, next to `[` and `]`.
+The shape is inset by one `gap` on its left and top edges (the right and bottom
+edges stay on the cell), which gives the wide part the same breathing room
+against `[`, `]` and the row above as flat keys have.
 The area of that notch belongs to the key below-left of it (`]`), as on a
 physical JIS board: a press there types `]`, and if nothing covers it the press
 is passed to the window (drag) instead of the Return key.

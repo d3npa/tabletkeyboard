@@ -99,12 +99,77 @@ void BarButton::leaveEvent(QEvent *event)
     QWidget::leaveEvent(event);
 }
 
+LockLeds::LockLeds(QWidget *parent) : QWidget(parent)
+{
+    setToolTip(tr("Num Lock · Caps Lock · Scroll Lock"));
+    on_ = QColor(0x4c, 0xaf, 0x50);
+    off_ = QColor(0x8a, 0x8a, 0x8a);
+    text_ = QColor(0x1a, 0x1a, 0x1a);
+    border_ = QColor(0xc8, 0xc8, 0xc8);
+    updateSize();
+}
+
+void LockLeds::applyColors(const QColor &on, const QColor &off, const QColor &text, const QColor &border,
+                           double scale)
+{
+    on_ = on;
+    off_ = off;
+    text_ = text;
+    border_ = border;
+    scale_ = scale;
+    updateSize();
+    update();
+}
+
+void LockLeds::setStates(bool num, bool caps, bool scroll)
+{
+    if (num_ == num && caps_ == caps && scroll_ == scroll)
+        return;
+    num_ = num;
+    caps_ = caps;
+    scroll_ = scroll;
+    update();
+}
+
+void LockLeds::updateSize()
+{
+    const int pill = qMax(8, qRound(11 * scale_));
+    const int gap = qMax(2, qRound(4 * scale_));
+    setFixedSize(3 * pill + 2 * gap, pill);
+}
+
+void LockLeds::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    const int pill = qMax(8, qRound(11 * scale_));
+    const int gap = qMax(2, qRound(4 * scale_));
+    QFont font = this->font();
+    font.setPixelSize(qMax(6, qRound(pill * 0.7)));
+    painter.setFont(font);
+
+    const bool states[3] = { num_, caps_, scroll_ };
+    const char letters[3] = { '1', 'A', 'S' };
+    for (int i = 0; i < 3; ++i) {
+        const QRectF box(i * (pill + gap), 0, pill, pill);
+        painter.setPen(QPen(border_, 1));
+        painter.setBrush(states[i] ? on_ : off_);
+        painter.drawRoundedRect(box.adjusted(0.5, 0.5, -0.5, -0.5), 2 * scale_, 2 * scale_);
+        painter.setPen(text_);
+        painter.drawText(box, Qt::AlignCenter, QString(QLatin1Char(letters[i])));
+    }
+}
+
 TitleBar::TitleBar(QWidget *parent) : QWidget(parent)
 {
     modeButton_ = new BarButton(QStringLiteral("Full"), this);
     languageButton_ = new BarButton(QStringLiteral("EN"), this);
+    settingsButton_ = new BarButton(QStringLiteral("⚙"), this);
+    settingsButton_->setToolTip(tr("Settings"));
     darkButton_ = new BarButton(QStringLiteral("Dark"), this);
     hideButton_ = new BarButton(QStringLiteral("⌄"), this);
+    leds_ = new LockLeds(this);
     warningLabel_ = new QLabel(this);
     warningLabel_->hide();
 
@@ -113,13 +178,16 @@ TitleBar::TitleBar(QWidget *parent) : QWidget(parent)
     layout->setSpacing(4);
     layout->addWidget(warningLabel_);
     layout->addStretch(1);
+    layout->addWidget(leds_);
     layout->addWidget(modeButton_);
     layout->addWidget(languageButton_);
+    layout->addWidget(settingsButton_);
     layout->addWidget(darkButton_);
     layout->addWidget(hideButton_);
 
     connect(modeButton_, &BarButton::clicked, this, &TitleBar::toggleModeRequested);
     connect(languageButton_, &BarButton::clicked, this, &TitleBar::toggleLanguageRequested);
+    connect(settingsButton_, &BarButton::clicked, this, &TitleBar::settingsRequested);
     connect(darkButton_, &BarButton::clicked, this, &TitleBar::toggleDarkModeRequested);
     connect(hideButton_, &BarButton::clicked, this, &TitleBar::hideRequested);
 }
@@ -130,11 +198,23 @@ void TitleBar::applyTheme(const ThemeSpec &theme, double scale)
     const QColor textColor(theme.keyText);
     QColor hover = QColor(theme.accent);
     hover.setAlpha(45);
-    for (BarButton *button : { modeButton_, languageButton_, darkButton_, hideButton_ })
+    for (BarButton *button : { modeButton_, languageButton_, settingsButton_, darkButton_, hideButton_ })
         button->applyColors(textColor, hover, scale);
+    leds_->applyColors(QColor(theme.ledOn), QColor(theme.ledOff), QColor(theme.keyText),
+                       QColor(theme.keyBorder), scale);
     warningLabel_->setStyleSheet(QStringLiteral("color: %1;").arg(QColor(theme.accent).name()));
     setFixedHeight(qRound(theme.barHeight * scale));
     update();
+}
+
+void TitleBar::setLockStates(bool num, bool caps, bool scroll)
+{
+    leds_->setStates(num, caps, scroll);
+}
+
+void TitleBar::setShowIndicators(bool on)
+{
+    leds_->setVisible(on);
 }
 
 void TitleBar::setStatus(const QString &layoutName, const QString &modeName, bool darkMode,

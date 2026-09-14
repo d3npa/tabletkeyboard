@@ -42,7 +42,34 @@ private:
     bool pressed_ = false;
 };
 
-// Drag surface plus [Full/Simple] [Language] [Dark] [Hide], and an XTEST warning.
+// Three painted pills showing the X server's Num/Caps/Scroll lock state.
+class LockLeds : public QWidget
+{
+    Q_OBJECT
+public:
+    explicit LockLeds(QWidget *parent = nullptr);
+
+    void applyColors(const QColor &on, const QColor &off, const QColor &text, const QColor &border, double scale);
+    void setStates(bool num, bool caps, bool scroll);
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
+
+private:
+    void updateSize();
+
+    bool num_ = false;
+    bool caps_ = false;
+    bool scroll_ = false;
+    double scale_ = 1.0;
+    QColor on_;
+    QColor off_;
+    QColor text_;
+    QColor border_;
+};
+
+// Drag surface plus [Full/Simple] [Language] [⚙] [Dark] [Hide], the lock
+// indicators, and an XTEST warning.
 class TitleBar : public QWidget
 {
     Q_OBJECT
@@ -52,11 +79,14 @@ public:
     void applyTheme(const ThemeSpec &theme, double scale);
     void setStatus(const QString &layoutName, const QString &modeName, bool darkMode, bool inputAvailable,
                    const QString &inputWarning);
+    void setLockStates(bool num, bool caps, bool scroll);
+    void setShowIndicators(bool on);
 
 signals:
     void toggleModeRequested();
     void toggleLanguageRequested();
     void toggleDarkModeRequested();
+    void settingsRequested();
     void hideRequested();
     void dragStarted(const QPoint &globalPos);
     void dragMoved(const QPoint &globalPos);
@@ -69,8 +99,10 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
+    LockLeds *leds_;
     BarButton *modeButton_;
     BarButton *languageButton_;
+    BarButton *settingsButton_;
     BarButton *darkButton_;
     BarButton *hideButton_;
     QLabel *warningLabel_;

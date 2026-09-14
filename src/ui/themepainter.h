@@ -15,6 +15,7 @@ struct KeyVisual
 {
     QString label;
     QString sublabel;
+    QString kana; // printed kana legend in the bottom-right corner
     bool hovered = false;
     bool pressed = false;
     bool active = false; // sticky/locked modifier or lit indicator

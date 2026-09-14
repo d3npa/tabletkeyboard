@@ -23,6 +23,8 @@ public:
     QString darkTheme = QStringLiteral("win10-dark");
     bool showFrow = false;
     bool showNumpad = false;
+    bool showKana = true;
+    bool showIndicators = true;
     int keyUnit = 72; // absolute key size in px; 0 = use the theme's key_unit
     QString layoutId = QStringLiteral("us");
     QString modeId = QStringLiteral("full");

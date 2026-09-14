@@ -102,8 +102,14 @@
             },
             {
               "id": "nav",
-              "topGap": 1,
               "rows": [
+                { "id": "frowgap", "keys": [
+                  { "type": "spacer", "width": 1 }, { "type": "spacer", "width": 1 }, { "type": "spacer", "width": 1 } ] },
+                [
+                  { "type": "key", "label": "PrtSc", "sym": "Print", "shifted": "Sys_Req", "repeat": false },
+                  { "type": "key", "label": "ScrLk", "sym": "Scroll_Lock", "indicator": "scroll", "repeat": false },
+                  { "type": "key", "label": "Pause", "sym": "Pause", "shifted": "Break", "repeat": false }
+                ],
                 [
                   { "type": "key", "label": "Ins", "sym": "Insert" },
                   { "type": "key", "label": "Home", "sym": "Home" },
@@ -128,8 +134,10 @@
             },
             {
               "id": "numpad",
-              "topGap": 1,
               "rows": [
+                { "id": "frowgap", "keys": [
+                  { "type": "spacer", "width": 1 }, { "type": "spacer", "width": 1 },
+                  { "type": "spacer", "width": 1 }, { "type": "spacer", "width": 1 } ] },
                 [
                   { "type": "key", "label": "Num", "sym": "Num_Lock", "indicator": "num" },
                   { "type": "key", "label": "/", "sym": "KP_Divide" },

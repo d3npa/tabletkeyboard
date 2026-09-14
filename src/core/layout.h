@@ -29,7 +29,8 @@ struct KeyDef
     QString mod;       // shift|ctrl|alt|super|altgr|fn (type Mod)
     QString action;    // hide|toggle_mode|toggle_lang|layer (type Action)
     QString layer;     // target layer for action "layer"
-    QString indicator; // caps|num: visual state from the X server
+    QString indicator; // caps|num|scroll: visual state from the X server
+    QString kana;      // printed kana legend, display only (type Key)
     bool repeat = true;
 
     // Stepped keys (JIS Return): `height` rows tall, `topWidth` units wide in

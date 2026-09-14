@@ -30,14 +30,17 @@ public:
     bool xtestAvailable() const { return xtestOk_; }
     bool capsLockOn() const { return capsOn_; }
     bool numLockOn() const { return numOn_; }
+    bool scrollLockOn() const { return scrollOn_; }
 
 signals:
     void capsLockChanged(bool on);
     void numLockChanged(bool on);
+    void scrollLockChanged(bool on);
     void keymapChanged();
 
 private:
     void processEvents();
+    void readLockMasks();
     void updateLockState(unsigned int lockedMods);
 
     Display *display_ = nullptr;
@@ -46,8 +49,10 @@ private:
     bool xkbOk_ = false;
     int xkbEventBase_ = 0;
     unsigned int numLockMask_ = 0;
+    unsigned int scrollLockMask_ = 0;
     bool capsOn_ = false;
     bool numOn_ = false;
+    bool scrollOn_ = false;
 };
 
 } // namespace osk

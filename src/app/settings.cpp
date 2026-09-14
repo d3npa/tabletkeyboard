@@ -23,6 +23,8 @@ void AppSettings::load()
     darkTheme = settings.value(QStringLiteral("theme/darkTheme"), QStringLiteral("win10-dark")).toString();
     showFrow = settings.value(QStringLiteral("blocks/frow"), false).toBool();
     showNumpad = settings.value(QStringLiteral("blocks/numpad"), false).toBool();
+    showKana = settings.value(QStringLiteral("keys/kana"), true).toBool();
+    showIndicators = settings.value(QStringLiteral("keys/indicators"), true).toBool();
     // QSettings escapes the "general" group to "[%General]" because top-level
     // keys live in "[General]"; accept a hand-written top-level keyUnit too.
     const QVariant keyUnitInGroup = settings.value(QStringLiteral("general/keyUnit"));
@@ -55,6 +57,8 @@ void AppSettings::save()
     settings.setValue(QStringLiteral("theme/darkTheme"), darkTheme);
     settings.setValue(QStringLiteral("blocks/frow"), showFrow);
     settings.setValue(QStringLiteral("blocks/numpad"), showNumpad);
+    settings.setValue(QStringLiteral("keys/kana"), showKana);
+    settings.setValue(QStringLiteral("keys/indicators"), showIndicators);
     settings.setValue(QStringLiteral("general/keyUnit"), keyUnit);
     settings.setValue(QStringLiteral("general/layout"), layoutId);
     settings.setValue(QStringLiteral("general/mode"), modeId);

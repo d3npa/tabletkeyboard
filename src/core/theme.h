@@ -26,6 +26,8 @@ struct ThemeSpec
     QString barBg = QStringLiteral("#f4f4f4");
     QString windowBg = QStringLiteral("#e8e8e8");
     double windowOpacity = 1.0;
+    QString ledOn = QStringLiteral("#4caf50");
+    QString ledOff = QStringLiteral("#8a8a8a");
 
     int radius = 3;
     int border = 1;

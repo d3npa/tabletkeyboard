@@ -415,6 +415,16 @@ void KeyStateMachine::setNumOn(bool on)
     emit output(out);
 }
 
+void KeyStateMachine::setScrollOn(bool on)
+{
+    if (scrollOn_ == on)
+        return;
+    scrollOn_ = on;
+    Output out;
+    out.stateChanged = true;
+    emit output(out);
+}
+
 void KeyStateMachine::setRepeatTiming(int delayMs, int intervalMs)
 {
     repeatDelayMs_ = qMax(1, delayMs);
