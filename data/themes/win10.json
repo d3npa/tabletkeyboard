@@ -1,0 +1,29 @@
+{
+  "id": "win10",
+  "name": "Windows 10",
+  "colors": {
+    "key_top": "#fdfdfd",
+    "key_bottom": "#f0f0f0",
+    "key_border": "#c8c8c8",
+    "key_text": "#1a1a1a",
+    "key_pressed_top": "#dcdcdc",
+    "key_pressed_bottom": "#c8c8c8",
+    "key_hover": "#ecf6ff",
+    "mod_active": "#cce4f7",
+    "accent": "#0078d7",
+    "bar_bg": "#f4f4f4",
+    "window_bg": "#e8e8e8",
+    "window_opacity": 1.0
+  },
+  "metrics": {
+    "radius": 3,
+    "border": 1,
+    "gap": 2,
+    "padding": 4,
+    "bar_height": 26,
+    "font_family": "Noto Sans",
+    "font_px": 15,
+    "label_px": 11,
+    "key_unit": 44
+  }
+}

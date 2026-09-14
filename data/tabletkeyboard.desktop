@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Tablet Keyboard
+GenericName=On-screen keyboard
+Comment=On-screen keyboard for X11 (XTEST injection)
+Exec=tabletkeyboard --show
+Icon=tabletkeyboard
+Terminal=false
+Categories=Utility;Accessibility;
+Keywords=keyboard;on-screen;touch;osk;x11;
+StartupNotify=false

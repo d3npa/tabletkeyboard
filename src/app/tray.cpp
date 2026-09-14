@@ -1,0 +1,91 @@
+#include "app/tray.h"
+
+#include "app/app.h"
+#include "app/autostart.h"
+#include "app/icon.h"
+#include "core/layout.h"
+#include "core/theme.h"
+
+#include <QAction>
+#include <QCoreApplication>
+#include <QMenu>
+#include <QSystemTrayIcon>
+
+namespace osk {
+
+Tray::Tray(App *app, QObject *parent) : QObject(parent), app_(app)
+{
+    if (!QSystemTrayIcon::isSystemTrayAvailable())
+        return;
+
+    tray_ = new QSystemTrayIcon(appIcon(), this);
+    menu_ = new QMenu();
+    tray_->setContextMenu(menu_);
+    tray_->setToolTip(QStringLiteral("tabletkeyboard"));
+    connect(menu_, &QMenu::aboutToShow, this, &Tray::rebuildMenu);
+    connect(tray_, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
+        if (reason == QSystemTrayIcon::Trigger)
+            app_->toggleKeyboard();
+    });
+    tray_->show();
+}
+
+void Tray::rebuildMenu()
+{
+    menu_->clear();
+
+    QAction *toggle = menu_->addAction(app_->isKeyboardVisible() ? tr("Hide keyboard") : tr("Show keyboard"));
+    connect(toggle, &QAction::triggered, app_, &App::toggleKeyboard);
+
+    const LayoutSet *layout = app_->machine()->layout();
+    if (layout && layout->modes.size() > 1) {
+        QMenu *modeMenu = menu_->addMenu(tr("Mode"));
+        for (const Mode &mode : layout->modes) {
+            QAction *action = modeMenu->addAction(mode.name);
+            action->setCheckable(true);
+            action->setChecked(mode.name == app_->machine()->modeId());
+            const QString id = mode.name;
+            connect(action, &QAction::triggered, this, [this, id]() { app_->setModeId(id); });
+        }
+    }
+
+    if (app_->layouts()->sets().size() > 1) {
+        QMenu *languageMenu = menu_->addMenu(tr("Language"));
+        for (const LayoutSet &set : app_->layouts()->sets()) {
+            QAction *action = languageMenu->addAction(set.name);
+            action->setCheckable(true);
+            action->setChecked(set.id == app_->machine()->layoutId());
+            const QString id = set.id;
+            connect(action, &QAction::triggered, this, [this, id]() { app_->setLayoutId(id); });
+        }
+    }
+
+    if (app_->themes()->themes().size() > 1) {
+        QMenu *themeMenu = menu_->addMenu(tr("Theme"));
+        for (const ThemeSpec &theme : app_->themes()->themes()) {
+            QAction *action = themeMenu->addAction(theme.name);
+            action->setCheckable(true);
+            action->setChecked(theme.id == app_->settings().themeId);
+            const QString id = theme.id;
+            connect(action, &QAction::triggered, this, [this, id]() { app_->setThemeId(id); });
+        }
+    }
+
+    QMenu *scaleMenu = menu_->addMenu(tr("Scale"));
+    for (const double scale : { 0.8, 1.0, 1.25, 1.5, 2.0 }) {
+        QAction *action = scaleMenu->addAction(QStringLiteral("%1%").arg(qRound(scale * 100)));
+        action->setCheckable(true);
+        action->setChecked(qFuzzyCompare(app_->scale(), scale));
+        connect(action, &QAction::triggered, this, [this, scale]() { app_->setScale(scale); });
+    }
+
+    QAction *autostart = menu_->addAction(tr("Start at login"));
+    autostart->setCheckable(true);
+    autostart->setChecked(app_->autostartEnabled());
+    connect(autostart, &QAction::toggled, app_, &App::setAutostart);
+
+    menu_->addSeparator();
+    menu_->addAction(tr("Quit"), qApp, &QCoreApplication::quit);
+}
+
+} // namespace osk

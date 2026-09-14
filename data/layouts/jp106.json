@@ -1,0 +1,280 @@
+{
+  "id": "jp106",
+  "name": "日本語 (jp106)",
+  "modes": {
+    "full": {
+      "layers": [
+        {
+          "name": "main",
+          "blocks": [
+            {
+              "rows": [
+                [
+                  { "type": "key", "label": "Esc", "sym": "Escape", "repeat": false },
+                  { "type": "key", "label": "F1", "sym": "F1", "repeat": false },
+                  { "type": "key", "label": "F2", "sym": "F2", "repeat": false },
+                  { "type": "key", "label": "F3", "sym": "F3", "repeat": false },
+                  { "type": "key", "label": "F4", "sym": "F4", "repeat": false },
+                  { "type": "key", "label": "F5", "sym": "F5", "repeat": false },
+                  { "type": "key", "label": "F6", "sym": "F6", "repeat": false },
+                  { "type": "key", "label": "F7", "sym": "F7", "repeat": false },
+                  { "type": "key", "label": "F8", "sym": "F8", "repeat": false },
+                  { "type": "key", "label": "F9", "sym": "F9", "repeat": false },
+                  { "type": "key", "label": "F10", "sym": "F10", "repeat": false },
+                  { "type": "key", "label": "F11", "sym": "F11", "repeat": false },
+                  { "type": "key", "label": "F12", "sym": "F12", "repeat": false }
+                ],
+                [
+                  { "type": "key", "label": "半/全", "sym": "Zenkaku_Hankaku" },
+                  { "type": "key", "label": "1", "sym": "1", "shifted": "exclam" },
+                  { "type": "key", "label": "2", "sym": "2", "shifted": "quotedbl" },
+                  { "type": "key", "label": "3", "sym": "3", "shifted": "numbersign" },
+                  { "type": "key", "label": "4", "sym": "4", "shifted": "dollar" },
+                  { "type": "key", "label": "5", "sym": "5", "shifted": "percent" },
+                  { "type": "key", "label": "6", "sym": "6", "shifted": "ampersand" },
+                  { "type": "key", "label": "7", "sym": "7", "shifted": "apostrophe" },
+                  { "type": "key", "label": "8", "sym": "8", "shifted": "parenleft" },
+                  { "type": "key", "label": "9", "sym": "9", "shifted": "parenright" },
+                  { "type": "key", "label": "0", "sym": "0", "shifted": "asciitilde" },
+                  { "type": "key", "label": "-", "sym": "minus", "shifted": "equal" },
+                  { "type": "key", "label": "^", "sym": "asciicircum", "shifted": "asciitilde" },
+                  { "type": "key", "label": "¥", "sym": "backslash", "shifted": "bar" },
+                  { "type": "key", "label": "⌫", "sym": "BackSpace" }
+                ],
+                [
+                  { "type": "key", "label": "Tab", "sym": "Tab", "width": 1.5 },
+                  { "type": "key", "label": "Q", "sym": "q", "shifted": "Q" },
+                  { "type": "key", "label": "W", "sym": "w", "shifted": "W" },
+                  { "type": "key", "label": "E", "sym": "e", "shifted": "E" },
+                  { "type": "key", "label": "R", "sym": "r", "shifted": "R" },
+                  { "type": "key", "label": "T", "sym": "t", "shifted": "T" },
+                  { "type": "key", "label": "Y", "sym": "y", "shifted": "Y" },
+                  { "type": "key", "label": "U", "sym": "u", "shifted": "U" },
+                  { "type": "key", "label": "I", "sym": "i", "shifted": "I" },
+                  { "type": "key", "label": "O", "sym": "o", "shifted": "O" },
+                  { "type": "key", "label": "P", "sym": "p", "shifted": "P" },
+                  { "type": "key", "label": "@", "sym": "at", "shifted": "grave" },
+                  { "type": "key", "label": "[", "sym": "bracketleft", "shifted": "braceleft" },
+                  { "type": "key", "label": "⏎", "sym": "Return", "width": 1.5, "repeat": false }
+                ],
+                [
+                  { "type": "key", "label": "英数", "sym": "Eisu_toggle", "shifted": "Caps_Lock", "width": 1.75, "indicator": "caps" },
+                  { "type": "key", "label": "A", "sym": "a", "shifted": "A" },
+                  { "type": "key", "label": "S", "sym": "s", "shifted": "S" },
+                  { "type": "key", "label": "D", "sym": "d", "shifted": "D" },
+                  { "type": "key", "label": "F", "sym": "f", "shifted": "F" },
+                  { "type": "key", "label": "G", "sym": "g", "shifted": "G" },
+                  { "type": "key", "label": "H", "sym": "h", "shifted": "H" },
+                  { "type": "key", "label": "J", "sym": "j", "shifted": "J" },
+                  { "type": "key", "label": "K", "sym": "k", "shifted": "K" },
+                  { "type": "key", "label": "L", "sym": "l", "shifted": "L" },
+                  { "type": "key", "label": ";", "sym": "semicolon", "shifted": "plus" },
+                  { "type": "key", "label": ":", "sym": "colon", "shifted": "asterisk" },
+                  { "type": "key", "label": "]", "sym": "bracketright", "shifted": "braceright" },
+                  { "type": "spacer", "width": 1.25 }
+                ],
+                [
+                  { "type": "mod", "mod": "shift", "label": "Shift", "width": 2.25 },
+                  { "type": "key", "label": "Z", "sym": "z", "shifted": "Z" },
+                  { "type": "key", "label": "X", "sym": "x", "shifted": "X" },
+                  { "type": "key", "label": "C", "sym": "c", "shifted": "C" },
+                  { "type": "key", "label": "V", "sym": "v", "shifted": "V" },
+                  { "type": "key", "label": "B", "sym": "b", "shifted": "B" },
+                  { "type": "key", "label": "N", "sym": "n", "shifted": "N" },
+                  { "type": "key", "label": "M", "sym": "m", "shifted": "M" },
+                  { "type": "key", "label": ",", "sym": "comma", "shifted": "less" },
+                  { "type": "key", "label": ".", "sym": "period", "shifted": "greater" },
+                  { "type": "key", "label": "/", "sym": "slash", "shifted": "question" },
+                  { "type": "key", "label": "ろ", "sym": "backslash", "shifted": "underscore" },
+                  { "type": "mod", "mod": "shift", "label": "Shift", "width": 1.75 }
+                ],
+                [
+                  { "type": "mod", "mod": "ctrl", "label": "Ctrl", "width": 1.25 },
+                  { "type": "mod", "mod": "super", "label": "Win", "width": 1.25 },
+                  { "type": "mod", "mod": "alt", "label": "Alt", "width": 1.25 },
+                  { "type": "key", "label": "無変換", "sym": "Muhenkan", "width": 1.25 },
+                  { "type": "key", "label": "", "sym": "space", "width": 2.5 },
+                  { "type": "key", "label": "変換", "sym": "Henkan", "width": 1.25 },
+                  { "type": "key", "label": "かな", "sym": "Hiragana_Katakana", "width": 1.25 },
+                  { "type": "mod", "mod": "altgr", "label": "AltGr", "width": 1.25 },
+                  { "type": "mod", "mod": "super", "label": "Win", "width": 1.25 },
+                  { "type": "key", "label": "Menu", "sym": "Menu", "width": 1.25 },
+                  { "type": "mod", "mod": "ctrl", "label": "Ctrl", "width": 1.25 }
+                ]
+              ]
+            },
+            {
+              "topGap": 1,
+              "rows": [
+                [
+                  { "type": "key", "label": "Ins", "sym": "Insert" },
+                  { "type": "key", "label": "Home", "sym": "Home" },
+                  { "type": "key", "label": "PgUp", "sym": "Prior" }
+                ],
+                [
+                  { "type": "key", "label": "Del", "sym": "Delete" },
+                  { "type": "key", "label": "End", "sym": "End" },
+                  { "type": "key", "label": "PgDn", "sym": "Next" }
+                ],
+                [
+                  { "type": "spacer", "width": 1 },
+                  { "type": "key", "label": "↑", "sym": "Up" },
+                  { "type": "spacer", "width": 1 }
+                ],
+                [
+                  { "type": "key", "label": "←", "sym": "Left" },
+                  { "type": "key", "label": "↓", "sym": "Down" },
+                  { "type": "key", "label": "→", "sym": "Right" }
+                ]
+              ]
+            },
+            {
+              "topGap": 1,
+              "rows": [
+                [
+                  { "type": "key", "label": "Num", "sym": "Num_Lock", "indicator": "num" },
+                  { "type": "key", "label": "/", "sym": "KP_Divide" },
+                  { "type": "key", "label": "*", "sym": "KP_Multiply" },
+                  { "type": "key", "label": "-", "sym": "KP_Subtract" }
+                ],
+                [
+                  { "type": "key", "label": "7", "sym": "KP_Home" },
+                  { "type": "key", "label": "8", "sym": "KP_Up" },
+                  { "type": "key", "label": "9", "sym": "KP_Prior" },
+                  { "type": "key", "label": "+", "sym": "KP_Add" }
+                ],
+                [
+                  { "type": "key", "label": "4", "sym": "KP_Left" },
+                  { "type": "key", "label": "5", "sym": "KP_Begin" },
+                  { "type": "key", "label": "6", "sym": "KP_Right" },
+                  { "type": "key", "label": "+", "sym": "KP_Add" }
+                ],
+                [
+                  { "type": "key", "label": "1", "sym": "KP_End" },
+                  { "type": "key", "label": "2", "sym": "KP_Down" },
+                  { "type": "key", "label": "3", "sym": "KP_Next" },
+                  { "type": "key", "label": "⏎", "sym": "KP_Enter", "repeat": false }
+                ],
+                [
+                  { "type": "key", "label": "0", "sym": "KP_Insert", "width": 2 },
+                  { "type": "key", "label": ".", "sym": "KP_Delete" },
+                  { "type": "key", "label": "⏎", "sym": "KP_Enter", "repeat": false }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "simple": {
+      "layers": [
+        {
+          "name": "main",
+          "blocks": [
+            {
+              "rows": [
+                [
+                  { "type": "key", "label": "q", "sym": "q", "shifted": "Q" },
+                  { "type": "key", "label": "w", "sym": "w", "shifted": "W" },
+                  { "type": "key", "label": "e", "sym": "e", "shifted": "E" },
+                  { "type": "key", "label": "r", "sym": "r", "shifted": "R" },
+                  { "type": "key", "label": "t", "sym": "t", "shifted": "T" },
+                  { "type": "key", "label": "y", "sym": "y", "shifted": "Y" },
+                  { "type": "key", "label": "u", "sym": "u", "shifted": "U" },
+                  { "type": "key", "label": "i", "sym": "i", "shifted": "I" },
+                  { "type": "key", "label": "o", "sym": "o", "shifted": "O" },
+                  { "type": "key", "label": "p", "sym": "p", "shifted": "P" }
+                ],
+                [
+                  { "type": "key", "label": "a", "sym": "a", "shifted": "A" },
+                  { "type": "key", "label": "s", "sym": "s", "shifted": "S" },
+                  { "type": "key", "label": "d", "sym": "d", "shifted": "D" },
+                  { "type": "key", "label": "f", "sym": "f", "shifted": "F" },
+                  { "type": "key", "label": "g", "sym": "g", "shifted": "G" },
+                  { "type": "key", "label": "h", "sym": "h", "shifted": "H" },
+                  { "type": "key", "label": "j", "sym": "j", "shifted": "J" },
+                  { "type": "key", "label": "k", "sym": "k", "shifted": "K" },
+                  { "type": "key", "label": "l", "sym": "l", "shifted": "L" }
+                ],
+                [
+                  { "type": "mod", "mod": "shift", "label": "Shift", "width": 1.5 },
+                  { "type": "key", "label": "z", "sym": "z", "shifted": "Z" },
+                  { "type": "key", "label": "x", "sym": "x", "shifted": "X" },
+                  { "type": "key", "label": "c", "sym": "c", "shifted": "C" },
+                  { "type": "key", "label": "v", "sym": "v", "shifted": "V" },
+                  { "type": "key", "label": "b", "sym": "b", "shifted": "B" },
+                  { "type": "key", "label": "n", "sym": "n", "shifted": "N" },
+                  { "type": "key", "label": "m", "sym": "m", "shifted": "M" },
+                  { "type": "key", "label": "⌫", "sym": "BackSpace", "width": 1.5 }
+                ],
+                [
+                  { "type": "action", "action": "layer", "layer": "symbols", "label": "&123" },
+                  { "type": "action", "action": "toggle_lang", "label": "A" },
+                  { "type": "key", "label": "変換", "sym": "Henkan" },
+                  { "type": "key", "label": "無変換", "sym": "Muhenkan" },
+                  { "type": "key", "label": "", "sym": "space", "width": 2 },
+                  { "type": "key", "label": ".", "sym": "period", "shifted": "greater" },
+                  { "type": "key", "label": "かな", "sym": "Hiragana_Katakana" },
+                  { "type": "key", "label": "⏎", "sym": "Return", "width": 1.5, "repeat": false },
+                  { "type": "action", "action": "hide", "label": "⌄" }
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "name": "symbols",
+          "blocks": [
+            {
+              "rows": [
+                [
+                  { "type": "key", "label": "1", "sym": "1", "shifted": "exclam" },
+                  { "type": "key", "label": "2", "sym": "2", "shifted": "quotedbl" },
+                  { "type": "key", "label": "3", "sym": "3", "shifted": "numbersign" },
+                  { "type": "key", "label": "4", "sym": "4", "shifted": "dollar" },
+                  { "type": "key", "label": "5", "sym": "5", "shifted": "percent" },
+                  { "type": "key", "label": "6", "sym": "6", "shifted": "ampersand" },
+                  { "type": "key", "label": "7", "sym": "7", "shifted": "apostrophe" },
+                  { "type": "key", "label": "8", "sym": "8", "shifted": "parenleft" },
+                  { "type": "key", "label": "9", "sym": "9", "shifted": "parenright" },
+                  { "type": "key", "label": "0", "sym": "0", "shifted": "asciitilde" }
+                ],
+                [
+                  { "type": "key", "label": "-", "sym": "minus", "shifted": "equal" },
+                  { "type": "key", "label": "^", "sym": "asciicircum", "shifted": "asciitilde" },
+                  { "type": "key", "label": "¥", "sym": "backslash", "shifted": "bar" },
+                  { "type": "key", "label": "@", "sym": "at", "shifted": "grave" },
+                  { "type": "key", "label": "[", "sym": "bracketleft", "shifted": "braceleft" },
+                  { "type": "key", "label": ";", "sym": "semicolon", "shifted": "plus" },
+                  { "type": "key", "label": ":", "sym": "colon", "shifted": "asterisk" },
+                  { "type": "key", "label": "]", "sym": "bracketright", "shifted": "braceright" },
+                  { "type": "key", "label": ",", "sym": "comma", "shifted": "less" },
+                  { "type": "key", "label": ".", "sym": "period", "shifted": "greater" }
+                ],
+                [
+                  { "type": "key", "label": "半/全", "sym": "Zenkaku_Hankaku" },
+                  { "type": "key", "label": "かな", "sym": "Hiragana_Katakana" },
+                  { "type": "key", "label": "変換", "sym": "Henkan" },
+                  { "type": "key", "label": "無変換", "sym": "Muhenkan" },
+                  { "type": "key", "label": "+", "sym": "plus" },
+                  { "type": "key", "label": "*", "sym": "asterisk" },
+                  { "type": "key", "label": "/", "sym": "slash", "shifted": "question" },
+                  { "type": "key", "label": "_", "sym": "underscore" },
+                  { "type": "key", "label": "~", "sym": "asciitilde" }
+                ],
+                [
+                  { "type": "action", "action": "layer", "layer": "main", "label": "あいう", "width": 1.5 },
+                  { "type": "key", "label": "←", "sym": "Left" },
+                  { "type": "key", "label": "↑", "sym": "Up" },
+                  { "type": "key", "label": "↓", "sym": "Down" },
+                  { "type": "key", "label": "→", "sym": "Right" },
+                  { "type": "key", "label": "⌫", "sym": "BackSpace", "width": 1.5 }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
