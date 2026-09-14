@@ -19,7 +19,7 @@ void AppSettings::load()
     startAtLogin = settings.value(QStringLiteral("general/startAtLogin"), false).toBool();
     onAllDesktops = settings.value(QStringLiteral("general/onAllDesktops"), true).toBool();
     darkMode = settings.value(QStringLiteral("theme/darkMode"), true).toBool();
-    lightTheme = settings.value(QStringLiteral("theme/lightTheme"), QStringLiteral("win10")).toString();
+    lightTheme = settings.value(QStringLiteral("theme/lightTheme"), QStringLiteral("default")).toString();
     darkTheme = settings.value(QStringLiteral("theme/darkTheme"), QStringLiteral("win10-dark")).toString();
     showFrow = settings.value(QStringLiteral("blocks/frow"), false).toBool();
     showNumpad = settings.value(QStringLiteral("blocks/numpad"), false).toBool();

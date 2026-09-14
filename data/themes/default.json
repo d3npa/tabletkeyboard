@@ -1,6 +1,6 @@
 {
-  "id": "win10",
-  "name": "Windows 10",
+  "id": "default",
+  "name": "Default",
   "dark": false,
   "colors": {
     "key_top": "#fdfdfd",

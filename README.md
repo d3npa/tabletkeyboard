@@ -35,7 +35,7 @@ only uses ICCCM/EWMH + XTEST.
   False`, skip-taskbar, sticky across desktops. Drag anywhere on the bar or the
   gaps; the position is remembered per screen. The window never takes focus, so
   injected keys always land in the application you were typing in.
-- **Themes**: JSON; four shipped: `win10` (Windows 10, light), `win10-dark`
+- **Themes**: JSON; four shipped: `default` (light), `win10-dark`
   (Windows 10 Dark, default dark), `gold-light`/`gold-dark` (metallic gold:
   champagne keys on a warm cream base / dark brown keys with gold highlights).
   The Light/Dark pickers list only themes of their variant; custom-painted keys,
@@ -109,7 +109,7 @@ arguments and exits.
 | `general/onAllDesktops` | `true` | `_NET_WM_DESKTOP = 0xFFFFFFFF` |
 | `general/layout`, `general/mode` | `us`, `full` | last used |
 | `theme/darkMode` | `true` | dark theme on |
-| `theme/lightTheme`, `theme/darkTheme` | `win10`, `win10-dark` | theme id per mode |
+| `theme/lightTheme`, `theme/darkTheme` | `default`, `win10-dark` | theme id per mode |
 | `blocks/frow`, `blocks/numpad` | `false` | show the F1–F12 row / the numpad block |
 | `keys/kana` | `true` | show the layouts' printed kana legends |
 | `keys/indicators` | `true` | show the Num/Caps/Scroll pills in the title bar |

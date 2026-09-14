@@ -25,8 +25,8 @@ QString themePath(const QString &file)
 
 void TestTheme::loadsShippedThemes()
 {
-    for (const QString &id : { QStringLiteral("gold-light"), QStringLiteral("gold-dark"),
-                               QStringLiteral("win10"), QStringLiteral("win10-dark") }) {
+    for (const QString &id : { QStringLiteral("default"), QStringLiteral("gold-light"),
+                               QStringLiteral("gold-dark"), QStringLiteral("win10-dark") }) {
         ThemeSpec theme;
         QString error;
         QVERIFY2(ThemeSpec::loadFile(themePath(id + QStringLiteral(".json")), &theme, &error),
@@ -63,7 +63,7 @@ void TestTheme::variantListing()
         darkIds << theme->id;
     }
     QVERIFY(lightIds.contains(QStringLiteral("gold-light")));
-    QVERIFY(lightIds.contains(QStringLiteral("win10")));
+    QVERIFY(lightIds.contains(QStringLiteral("default")));
     QVERIFY(darkIds.contains(QStringLiteral("gold-dark")));
     QVERIFY(darkIds.contains(QStringLiteral("win10-dark")));
     QVERIFY(!lightIds.contains(QStringLiteral("win10-dark")));

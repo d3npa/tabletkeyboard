@@ -6,8 +6,8 @@ Files live in `data/themes/` (bundled), `/usr/share/tabletkeyboard/themes/`, or
 
 ```json
 {
-  "id": "win10",
-  "name": "Windows 10",
+  "id": "default",
+  "name": "Default",
   "colors": {
     "key_top": "#fdfdfd",
     "key_bottom": "#f0f0f0",
@@ -91,7 +91,7 @@ touch" note in the README).
 ## Adding a theme
 
 ```sh
-cp data/themes/win10.json ~/.local/share/tabletkeyboard/themes/mytheme.json
+cp data/themes/default.json ~/.local/share/tabletkeyboard/themes/mytheme.json
 # edit id -> "mytheme", restart or pick it in Tray -> Theme
 ```
 

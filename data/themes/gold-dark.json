@@ -16,7 +16,7 @@
     "bar_bg": "#2a2318",
     "window_bg": "#1d1810",
     "window_opacity": 0.98,
-    "led_on": "#d9b45c",
+    "led_on": "#4caf50",
     "led_off": "#6a5c42"
   },
   "metrics": {

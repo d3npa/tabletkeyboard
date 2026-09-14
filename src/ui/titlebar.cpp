@@ -133,7 +133,7 @@ void LockLeds::setStates(bool num, bool caps, bool scroll)
 
 void LockLeds::updateSize()
 {
-    const int pill = qMax(8, qRound(11 * scale_));
+    const int pill = qMax(10, qRound(14 * scale_));
     const int gap = qMax(2, qRound(4 * scale_));
     setFixedSize(3 * pill + 2 * gap, pill);
 }
@@ -143,7 +143,7 @@ void LockLeds::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
 
-    const int pill = qMax(8, qRound(11 * scale_));
+    const int pill = qMax(10, qRound(14 * scale_));
     const int gap = qMax(2, qRound(4 * scale_));
     QFont font = this->font();
     font.setPixelSize(qMax(6, qRound(pill * 0.7)));

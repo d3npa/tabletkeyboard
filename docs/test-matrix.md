@@ -120,15 +120,16 @@ image x 150, y 112/142/168 at 1×; content × 2 + (8, 64) at 2×.
 
 | Scenario | Expectation | Result |
 |---|---|---|
-| Shipped themes (`tst_theme`) | `gold-light`, `gold-dark`, `win10`, `win10-dark` load; `dark` true only for the two dark ones; `key_mid` set on the gold pair only; `Lint::hasErrors` false | pass |
-| Variant listing (`tst_theme::variantListing`) | `byVariant(false)` = Gold Light, Windows 10; `byVariant(true)` = Gold Dark, Windows 10 Dark (scan order) | pass |
-| `--light --theme win10` 1× render | (252,252,252) → (246,246,246) → (242,242,242): unchanged palette, two-stop gradient, no sheen band | pass |
+| Shipped themes (`tst_theme`) | `default`, `gold-light`, `gold-dark`, `win10-dark` load; `dark` true only for the two dark ones; `key_mid` set on the gold pair only; `Lint::hasErrors` false | pass |
+| Variant listing (`tst_theme::variantListing`) | `byVariant(false)` = Default, Gold Light; `byVariant(true)` = Gold Dark, Windows 10 Dark (scan order) | pass |
+| `--light --theme default` 1× render | (252,252,252) → (246,246,246) → (242,242,242): unchanged palette, two-stop gradient, no sheen band | pass |
 | `--light --theme gold-light` 1× render | every sample `R > G > B` and `R − B ≥ 25`; (241,232,209) → (243,235,212) → (226,210,174), so the 0.42 sheen stop lifts the middle above the top; bar `#f4ecda`, base `#e9dfc7` | pass |
 | `--dark --theme gold-dark` 1× render | (68,54,33) → (72,58,35) → (50,40,25) with mid > top > bottom; brightest text pixel (236,217,168) = `#ecd9a8`; bar `#2a2318`, base `#1d1810` | pass |
 | `--dark --theme gold-dark` 2× render | window 2676×808; (68,54,32) → (73,58,35) → (51,40,25) — the same gradient at 2× | pass |
 | `--dark --theme gold-light`, fresh config | `--theme` switches the mode to the theme's variant: `darkMode=false`, `lightTheme=gold-light`, `darkTheme=win10-dark` | pass |
 | Second instance `--light --theme gold-dark` | forwarded: `darkMode=true`, `darkTheme=gold-dark`, `lightTheme=gold-light` | pass |
 | Broken config (`darkTheme` = a retired id, `lightTheme` = a dark theme) | unknown and mismatched ids fall back per variant: `darkTheme=gold-dark`, `lightTheme=gold-light`; no reference to the retired ids remains anywhere in `data/`, `src/`, `tests/`, `docs/theme.md` or the README | pass |
+| Lock LEDs (title-bar pills) | pills enlarged 11 → 14 px; the lit fill is green `#4caf50` in every shipped theme (the gold pair previously used gold `#c9a13c`/`#d9b45c`): `--light --theme gold-light` capture with CapsLock on shows the `A` pill filled `#4caf50`, off pills `#c2b494`, fill 12×12 inside the 14×14 bordered pill | pass |
 
 ## Performance targets
 
