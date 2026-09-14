@@ -22,7 +22,7 @@
     "gap": 2,
     "padding": 4,
     "bar_height": 26,
-    "font_family": "Noto Sans",
+    "font_family": "Noto Sans CJK JP",
     "font_px": 15,
     "label_px": 11,
     "key_unit": 72
