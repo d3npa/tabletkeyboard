@@ -2,7 +2,7 @@
 
 <img src="docs/img/tabletkeyboard-1.jpg" width="49%" alt="tabletkeyboard over kde's about this system window on a let's note, jp106 layout"> <img src="docs/img/tabletkeyboard-2.jpg" width="49%" alt="tabletkeyboard over kde's about this system window, jp106 layout">
 
-an on-screen keyboard for x11. keys are injected with xtest, so fcitx5, applications and shortcuts see ordinary key presses. runs as user withoutany special configuration. i made this with ds4 (slopp ik ik but hopefully not too sloppy; i rly pushed it to clean up) 
+an on-screen keyboard for x11. keys are injected with xtest, so fcitx5, applications and shortcuts see ordinary key presses. runs as user withoutany special configuration. i made this with deepseek v4.1 flash (slopp ik ik but hopefully not too sloppy; i rly pushed it to clean up) 
 
 ## build
 
@@ -30,6 +30,10 @@ layouts and themes are json:
 
 *	~/.local/share/tabletkeyboard/layouts/*.json
 *	~/.local/share/tabletkeyboard/themes/*.json
+
+the package installs its copies in /usr/share/tabletkeyboard/ and reads those
+too; a file with the same name in ~/.local/share wins. restart the keyboard to
+pick up changes.
 
 see [docs/layout.md](docs/layout.md) and [docs/theme.md](docs/theme.md)
 
