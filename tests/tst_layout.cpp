@@ -85,6 +85,7 @@ private slots:
     void rejectsUnknownFnKeysym();
     void parsesRowObjectsAndArrayRows();
     void rejectsUnknownAction();
+    void rejectsThemeFile();
     void lintShippedLayouts();
 
 private:
@@ -361,6 +362,16 @@ void TestLayout::rejectsUnknownAction()
     QString error;
     QVERIFY(!LayoutSet::loadFile(path, &resolver, &set, &error));
     QVERIFY(error.contains(QStringLiteral("explode")));
+}
+
+void TestLayout::rejectsThemeFile()
+{
+    const QString path = QStringLiteral(TABLETKEYBOARD_DATA_DIR) + QStringLiteral("/themes/default.json");
+    XlibKeysymResolver resolver;
+    LayoutSet set;
+    QString error;
+    QVERIFY(!LayoutSet::loadFile(path, &resolver, &set, &error));
+    QVERIFY2(error.contains(QStringLiteral("looks like a theme")), qPrintable(error));
 }
 
 void TestLayout::lintShippedLayouts()

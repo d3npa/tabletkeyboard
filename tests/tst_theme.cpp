@@ -16,6 +16,7 @@ private slots:
     void rejectsBadOpacity();
     void rejectsMissingId();
     void missingMetricsUseDefaults();
+    void rejectsLayoutFile();
 };
 
 QString themePath(const QString &file)
@@ -131,6 +132,15 @@ void TestTheme::missingMetricsUseDefaults()
     QCOMPARE(theme.fontPx, 18);
     QCOMPARE(theme.labelPx, 11); // default
     QCOMPARE(theme.barHeight, 26); // default
+}
+
+void TestTheme::rejectsLayoutFile()
+{
+    const QString path = QStringLiteral(TABLETKEYBOARD_DATA_DIR) + QStringLiteral("/layouts/us.json");
+    ThemeSpec theme;
+    QString error;
+    QVERIFY(!ThemeSpec::loadFile(path, &theme, &error));
+    QVERIFY2(error.contains(QStringLiteral("looks like a layout")), qPrintable(error));
 }
 
 QTEST_GUILESS_MAIN(TestTheme)

@@ -37,6 +37,23 @@ bool keysymOk(const QString &name, const KeysymResolver *resolver, quint32 code)
     return code != 0;
 }
 
+// A load failure becomes the file's single error; the loader already names the
+// file in its message.
+QVector<LintIssue> loadError(const QString &error)
+{
+    QVector<LintIssue> issues;
+    addError(&issues, QString(), error);
+    return issues;
+}
+
+// Issues carry the file name so every message can be printed on its own.
+QVector<LintIssue> tagFile(QVector<LintIssue> issues, const QString &path)
+{
+    for (LintIssue &issue : issues)
+        issue.file = QFileInfo(path).fileName();
+    return issues;
+}
+
 } // namespace
 
 QVector<LintIssue> Lint::check(const LayoutSet &set, const KeysymResolver *resolver)
@@ -177,17 +194,18 @@ QVector<LintIssue> Lint::checkLayoutFile(const QString &path, const KeysymResolv
 {
     LayoutSet set;
     QString error;
-    if (!LayoutSet::loadFile(path, resolver, &set, &error)) {
-        QVector<LintIssue> issues;
-        addError(&issues, QString(), error);
-        issues.first().file = QFileInfo(path).fileName();
-        return issues;
-    }
+    if (!LayoutSet::loadFile(path, resolver, &set, &error))
+        return loadError(error);
+    return tagFile(check(set, resolver), path);
+}
 
-    QVector<LintIssue> issues = check(set, resolver);
-    for (LintIssue &issue : issues)
-        issue.file = QFileInfo(path).fileName();
-    return issues;
+QVector<LintIssue> Lint::checkThemeFile(const QString &path)
+{
+    ThemeSpec theme;
+    QString error;
+    if (!ThemeSpec::loadFile(path, &theme, &error))
+        return loadError(error);
+    return tagFile(check(theme), path);
 }
 
 bool Lint::hasErrors(const QVector<LintIssue> &issues)

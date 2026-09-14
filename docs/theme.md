@@ -96,4 +96,5 @@ cp data/themes/default.json ~/.local/share/tabletkeyboard/themes/mytheme.json
 ```
 
 Malformed files are reported on stderr and skipped; unknown fields are ignored,
-so a theme stays loadable across versions.
+so a theme stays loadable across versions. One file can be validated without
+starting the keyboard: `tabletkeyboard --check-theme <file>`.

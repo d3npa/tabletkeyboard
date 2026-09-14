@@ -31,6 +31,9 @@ public:
     // Loads and lints one layout file; a load failure is reported as an error.
     static QVector<LintIssue> checkLayoutFile(const QString &path, const KeysymResolver *resolver);
 
+    // Loads and lints one theme file; a load failure is reported as an error.
+    static QVector<LintIssue> checkThemeFile(const QString &path);
+
     static bool hasErrors(const QVector<LintIssue> &issues);
 };
 

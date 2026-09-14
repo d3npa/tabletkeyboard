@@ -62,14 +62,13 @@ void printUsage()
                 "  --dark | --light       dark or light theme for the keyboard\n"
                 "  --blocks ID[,ID]       blocks to show: frow, numpad (others are always shown)\n"
                 "  --check-layout FILE    lint a layout file and exit\n"
+                "  --check-theme FILE     lint a theme file and exit\n"
                 "  --version              print the version and exit\n"
                 "  --help                 this text\n");
 }
 
-int runCheckLayout(const QString &path)
+int reportIssues(const QString &path, const QVector<osk::LintIssue> &issues)
 {
-    osk::XlibKeysymResolver resolver;
-    const QVector<osk::LintIssue> issues = osk::Lint::checkLayoutFile(path, &resolver);
     for (const osk::LintIssue &issue : issues)
         std::printf("%s\n", qPrintable(issue.toString()));
     if (!osk::Lint::hasErrors(issues)) {
@@ -77,6 +76,17 @@ int runCheckLayout(const QString &path)
         return 0;
     }
     return 1;
+}
+
+int runCheckLayout(const QString &path)
+{
+    osk::XlibKeysymResolver resolver;
+    return reportIssues(path, osk::Lint::checkLayoutFile(path, &resolver));
+}
+
+int runCheckTheme(const QString &path)
+{
+    return reportIssues(path, osk::Lint::checkThemeFile(path));
 }
 
 } // namespace
@@ -100,13 +110,22 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    const int checkIndex = args.indexOf(QStringLiteral("--check-layout"));
-    if (checkIndex >= 0) {
-        if (checkIndex + 1 >= args.size()) {
+    const int checkLayoutIndex = args.indexOf(QStringLiteral("--check-layout"));
+    if (checkLayoutIndex >= 0) {
+        if (checkLayoutIndex + 1 >= args.size()) {
             std::fprintf(stderr, "tabletkeyboard: --check-layout needs a file\n");
             return 2;
         }
-        return runCheckLayout(args.at(checkIndex + 1));
+        return runCheckLayout(args.at(checkLayoutIndex + 1));
+    }
+
+    const int checkThemeIndex = args.indexOf(QStringLiteral("--check-theme"));
+    if (checkThemeIndex >= 0) {
+        if (checkThemeIndex + 1 >= args.size()) {
+            std::fprintf(stderr, "tabletkeyboard: --check-theme needs a file\n");
+            return 2;
+        }
+        return runCheckTheme(args.at(checkThemeIndex + 1));
     }
 
     // Validate before starting (and before forwarding): a typo must not look

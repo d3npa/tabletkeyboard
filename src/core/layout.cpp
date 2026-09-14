@@ -263,8 +263,13 @@ bool LayoutSet::fromJson(const QJsonObject &obj, const KeysymResolver *resolver,
     set.name = obj.value(QStringLiteral("name")).toString(set.id);
 
     const QJsonValue modesValue = obj.value(QStringLiteral("modes"));
-    if (!modesValue.isObject() || modesValue.toObject().isEmpty())
+    if (!modesValue.isObject() || modesValue.toObject().isEmpty()) {
+        // A theme handed to the layout loader ends up here; name the actual
+        // problem instead of only the missing key.
+        if (obj.contains(QStringLiteral("colors")) || obj.contains(QStringLiteral("metrics")))
+            return fail(error, QStringLiteral("layout %1: not a layout file (looks like a theme)").arg(set.id));
         return fail(error, QStringLiteral("layout %1: missing \"modes\"").arg(set.id));
+    }
 
     const QJsonObject modes = modesValue.toObject();
     for (auto it = modes.begin(); it != modes.end(); ++it) {

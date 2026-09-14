@@ -55,6 +55,11 @@ bool isValidColor(const QString &value)
 
 bool ThemeSpec::fromJson(const QJsonObject &obj, ThemeSpec *out, QString *error)
 {
+    // A layout handed to the theme loader would otherwise load with all the
+    // default colours and lint clean.
+    if (obj.contains(QStringLiteral("modes")))
+        return fail(error, QStringLiteral("theme: not a theme file (looks like a layout)"));
+
     ThemeSpec theme;
     theme.id = obj.value(QStringLiteral("id")).toString();
     if (theme.id.isEmpty())
