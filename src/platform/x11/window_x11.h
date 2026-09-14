@@ -25,7 +25,8 @@ public:
 
 private:
     void addNetWmStateProperty(Window window, const QVector<QString> &states);
-    void sendNetWmStateMessage(Window window, const QString &state1, const QString &state2);
+    void sendNetWmStates(Window window, const QVector<QString> &states, bool add);
+    void sendNetWmStateMessage(Window window, const QString &state1, const QString &state2, bool add);
 
     Display *dpy_;
     bool allDesktops_;

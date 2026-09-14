@@ -201,12 +201,25 @@ void App::showKeyboard()
     else
         window_->move(window_->defaultPosition());
 
-    window_->show();
-    window_->raise();
+    // EWMH properties must be in place before the window is mapped: KWin reads
+    // them when it starts managing the window and ignores later direct writes.
+    const quintptr windowId = quintptr(window_->winId());
     if (windowAdapter_) {
-        const quintptr windowId = quintptr(window_->winId());
         windowAdapter_->configure(windowId);
         windowAdapter_->setOnAllDesktops(windowId, settings_.onAllDesktops);
+    }
+
+    window_->show();
+    window_->raise();
+
+    // WMs that normalize the desktop/state while they start managing the window
+    // (KWin does) need the request repeated once it is actually managed; the
+    // pre-map writes above cover WMs that read the properties at manage time.
+    if (windowAdapter_ && settings_.onAllDesktops) {
+        QTimer::singleShot(150, this, [this, windowId]() {
+            if (windowAdapter_ && window_ && window_->isVisible())
+                windowAdapter_->setOnAllDesktops(windowId, settings_.onAllDesktops);
+        });
     }
 }
 

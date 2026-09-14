@@ -22,8 +22,9 @@ only uses ICCCM/EWMH + XTEST.
   injected keys always land in the application you were typing in.
 - **Themes**: JSON (`win10` default, `win10-dark`, `minimal`); custom-painted
   keys, no stylesheet magic.
-- **Tray icon** (`QSystemTrayIcon`: SNI on Plasma, XEmbed elsewhere): show/hide,
-  mode, language, theme, scale, start-at-login, quit.
+- **Tray icon** (`QSystemTrayIcon`; on X11 this is an XEmbed item, which Plasma
+  bridges to its SNI tray through `xembedsniproxy`): show/hide, mode, language,
+  theme, scale, start-at-login, quit.
 - **Single instance**: a second invocation forwards its command line to the
   running instance.
 - **Key hold repeats** (Backspace, arrows, …), hold-to-lock modifiers, and an
@@ -128,9 +129,10 @@ spare-modifier probe result).
 
 - **A ⚠ appears in the title bar** — XTEST is missing on this display
   (`xdpyinfo | grep -i xtest`). The keyboard cannot inject anything.
-- **No tray icon under Plasma** — check SNI registration:
-  `busctl --user tree org.kde.StatusNotifierWatcher`. Without a tray the
-  keyboard shows itself at startup so it stays reachable.
+- **No tray icon under Plasma** — Plasma hosts XEmbed tray icons through
+  `xembedsniproxy`: check that it is running (`pgrep -a xembedsniproxy`) and that
+  the tray widget is present. Without any tray the keyboard shows itself at
+  startup so it stays reachable.
 - **No Japanese glyphs** — `fc-list :lang=ja`; pick a font with CJK coverage in
   the theme's `font_family`.
 - **Tray/Plasma resets the keyboard map** (layout switch) — harmless: the
@@ -140,8 +142,11 @@ spare-modifier probe result).
 
 ## Status
 
-`docs/spikes.md` (feasibility results on Xvfb, including what is still pending
-on the target device) and `docs/test-matrix.md` (IME/application matrix).
+Verified end-to-end on the target device (Let's Note CF-QV, Slackware 15.0,
+KDE Plasma 5/X11, fcitx5-mozc): XTEST injection, focusless window and EWMH
+hints under KWin, tray icon, Alt+Tab through KWin, ASCII and Ctrl+C/V in Kate
+and Konsole, and a full Japanese sentence composed and converted purely from the
+OSK. Details and remaining items: `docs/spikes.md` and `docs/test-matrix.md`.
 
 ## License
 
