@@ -103,14 +103,32 @@ programmatically.
 | Scroll pill with `xmodmap -e 'add mod3 = Scroll_Lock'` at runtime | the `S` pill lights after tapping ScrLk (masks re-read on `XkbMapNotify`) and goes dark again after `remove mod3`; with `mod3` unbound it stays dark while the key still sends `Scroll_Lock` | pass |
 | `keys/indicators=false` (dialog) | all three pills disappear (pill-coloured pixels in the bar: 409 → 15) | pass |
 | Title-bar `⚙` | opens the "Keyboard settings" dialog above the keyboard; the glyph renders as a gear, not a missing-glyph box | pass |
-| Dialog: kana off / key size 100 / dark theme = `letsnote-gold` / indicators off | each control applies live: kana corner diff, window 1338×404 → 1863×563, key faces turn champagne gold (217,202,167), pills vanish; every change lands in the config file | pass |
-| `--light --theme letsnote-gold` | champagne-gold keys (`#efe6cd`/`#dccaa2`) on the warm dark base (`#1d1a15`, bar `#2a2620`), `--check-layout` clean | pass |
+| Dialog: kana off / key size 100 / dark theme = `Gold Dark` / indicators off | each control applies live: kana corner diff, window 1338×404 → 1863×563, key faces turn dark gold (resting gradient `#41341f` → `#4e3f26` → `#2b2216`, v4 render check), pills vanish; every change lands in the config file | pass |
+| `--light --theme gold-dark` | `--theme` switches to the theme's variant, so the keyboard ends dark: dark-brown gold keys (`#41341f`/`#2b2216`, sheen `#4e3f26`) on the near-black brown base (`#1d1810`, bar `#2a2318`); `darkMode=true`, `darkTheme=gold-dark`, `--check-layout` clean | pass |
 | Device (KWin, 2× scaling, jp106) | v3 build: 2676×808 physical window; render matches the local 2× render in 99.7 % of pixels (rest is font antialiasing), kana + PrtSc row + three pills present | pass |
-| Unit tests | `tst_layout` (kana, nav row, stepped Return), `tst_geometry` (Return gaps, cluster alignment), `tst_theme` (gold) pass on Qt 5.15.19 (dev) and Qt 5.15.3 (target) | pass |
+| Unit tests | `tst_layout` (kana, nav row, stepped Return), `tst_geometry` (Return gaps, cluster alignment), `tst_theme` (four themes, variant listing) pass on Qt 5.15.19 (dev) and Qt 5.15.3 (target) | pass |
 
 Not covered headlessly: the tray's `Settings…` entry (no XEmbed/SNI tray owner
 in Xvfb — the action is a one-liner onto the same `App::showSettings` that the
 `⚙` button exercises).
+
+## v4 pass (four themes: light/dark × Windows 10/gold, variant-scoped pickers)
+
+Same local harness (Xvfb 1920×1080 and 2880×1920 with `QT_SCREEN_SCALE_FACTORS=2`,
+`xwd` window captures). Pixels are sampled at the `Q` key of jp106 `full`/`main`:
+image x 150, y 112/142/168 at 1×; content × 2 + (8, 64) at 2×.
+
+| Scenario | Expectation | Result |
+|---|---|---|
+| Shipped themes (`tst_theme`) | `gold-light`, `gold-dark`, `win10`, `win10-dark` load; `dark` true only for the two dark ones; `key_mid` set on the gold pair only; `Lint::hasErrors` false | pass |
+| Variant listing (`tst_theme::variantListing`) | `byVariant(false)` = Gold Light, Windows 10; `byVariant(true)` = Gold Dark, Windows 10 Dark (scan order) | pass |
+| `--light --theme win10` 1× render | (252,252,252) → (246,246,246) → (242,242,242): unchanged palette, two-stop gradient, no sheen band | pass |
+| `--light --theme gold-light` 1× render | every sample `R > G > B` and `R − B ≥ 25`; (241,232,209) → (243,235,212) → (226,210,174), so the 0.42 sheen stop lifts the middle above the top; bar `#f4ecda`, base `#e9dfc7` | pass |
+| `--dark --theme gold-dark` 1× render | (68,54,33) → (72,58,35) → (50,40,25) with mid > top > bottom; brightest text pixel (236,217,168) = `#ecd9a8`; bar `#2a2318`, base `#1d1810` | pass |
+| `--dark --theme gold-dark` 2× render | window 2676×808; (68,54,32) → (73,58,35) → (51,40,25) — the same gradient at 2× | pass |
+| `--dark --theme gold-light`, fresh config | `--theme` switches the mode to the theme's variant: `darkMode=false`, `lightTheme=gold-light`, `darkTheme=win10-dark` | pass |
+| Second instance `--light --theme gold-dark` | forwarded: `darkMode=true`, `darkTheme=gold-dark`, `lightTheme=gold-light` | pass |
+| Broken config (`darkTheme` = a retired id, `lightTheme` = a dark theme) | unknown and mismatched ids fall back per variant: `darkTheme=gold-dark`, `lightTheme=gold-light`; no reference to the retired ids remains anywhere in `data/`, `src/`, `tests/`, `docs/theme.md` or the README | pass |
 
 ## Performance targets
 

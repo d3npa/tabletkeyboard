@@ -35,8 +35,11 @@ only uses ICCCM/EWMH + XTEST.
   False`, skip-taskbar, sticky across desktops. Drag anywhere on the bar or the
   gaps; the position is remembered per screen. The window never takes focus, so
   injected keys always land in the application you were typing in.
-- **Themes**: JSON (`win10-dark` default, `win10` light, `minimal`, and the
-  champagne-gold `letsnote-gold`); custom-painted keys, no stylesheet magic.
+- **Themes**: JSON; four shipped: `win10` (Windows 10, light), `win10-dark`
+  (Windows 10 Dark, default dark), `gold-light`/`gold-dark` (metallic gold:
+  champagne keys on a warm cream base / dark brown keys with gold highlights).
+  The Light/Dark pickers list only themes of their variant; custom-painted keys,
+  no stylesheet magic.
 - **Tray icon** (`QSystemTrayIcon`; on X11 this is an XEmbed item, which Plasma
   bridges to its SNI tray through `xembedsniproxy`): show/hide, mode, language,
   dark mode, blocks, theme, scale, settings, start-at-login, quit.
@@ -82,7 +85,7 @@ tabletkeyboard --check-layout data/layouts/jp106.json
 | `--show` / `--hide` / `--toggle` | window visibility |
 | `--mode full\|simple` | keyboard mode |
 | `--lang ID` | layout set (`us`, `jp106`, …) |
-| `--theme ID` | theme id for the active (dark or light) slot |
+| `--theme ID` | theme id; also switches to that theme's light/dark mode |
 | `--scale FACTOR` | keyboard scale, 0.5 – 3.0 |
 | `--dark` / `--light` | dark or light theme for the keyboard |
 | `--blocks ID[,ID]` | blocks to show: `frow`, `numpad` (anything else is always shown) |

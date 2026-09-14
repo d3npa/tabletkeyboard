@@ -1,6 +1,7 @@
 {
   "id": "win10-dark",
   "name": "Windows 10 Dark",
+  "dark": true,
   "colors": {
     "key_top": "#3c3c3c",
     "key_bottom": "#2f2f2f",

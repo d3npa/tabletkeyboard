@@ -172,6 +172,10 @@ QVector<LintIssue> Lint::check(const ThemeSpec &theme)
                      QStringLiteral("must be #rrggbb"));
     }
 
+    // Optional: an empty key_mid means the plain two-stop key gradient.
+    if (!theme.keyMid.isEmpty() && !isValidColor(theme.keyMid))
+        addError(&issues, QStringLiteral("colors.key_mid"), QStringLiteral("must be #rrggbb"));
+
     if (!(theme.windowOpacity >= 0.0 && theme.windowOpacity <= 1.0))
         addError(&issues, QStringLiteral("colors.window_opacity"), QStringLiteral("must be within [0, 1]"));
 

@@ -60,10 +60,12 @@ bool ThemeSpec::fromJson(const QJsonObject &obj, ThemeSpec *out, QString *error)
     if (theme.id.isEmpty())
         return fail(error, QStringLiteral("theme: missing \"id\""));
     theme.name = obj.value(QStringLiteral("name")).toString(theme.id);
+    theme.dark = obj.value(QStringLiteral("dark")).toBool(false);
 
     const QJsonObject colors = obj.value(QStringLiteral("colors")).toObject();
     if (!readColor(colors, "key_top", &theme.keyTop, error)
         || !readColor(colors, "key_bottom", &theme.keyBottom, error)
+        || !readColor(colors, "key_mid", &theme.keyMid, error)
         || !readColor(colors, "key_border", &theme.keyBorder, error)
         || !readColor(colors, "key_text", &theme.keyText, error)
         || !readColor(colors, "key_pressed_top", &theme.keyPressedTop, error)
@@ -190,6 +192,16 @@ const ThemeSpec *ThemeLibrary::byId(const QString &id) const
         if (theme.id == id)
             return &theme;
     return nullptr;
+}
+
+QVector<const ThemeSpec *> ThemeLibrary::byVariant(bool dark) const
+{
+    QVector<const ThemeSpec *> themes;
+    for (const ThemeSpec &theme : themes_) {
+        if (theme.dark == dark)
+            themes.append(&theme);
+    }
+    return themes;
 }
 
 } // namespace osk

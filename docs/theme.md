@@ -38,11 +38,15 @@ Files live in `data/themes/` (bundled), `/usr/share/tabletkeyboard/themes/`, or
 }
 ```
 
+Top-level `dark` (bool, default `false`) marks the dark variant; the Light/Dark
+theme pickers list only themes of the matching variant.
+
 ## Colors (`#rrggbb`, optional `#rrggbbaa`)
 
 | Name | Default | Used for |
 |---|---|---|
 | `key_top`, `key_bottom` | `#fdfdfd`, `#f0f0f0` | key gradient (top → bottom) |
+| `key_mid` | – | optional middle gradient stop (metallic sheen); absent = two-stop gradient |
 | `key_border` | `#c8c8c8` | 1 px key outline |
 | `key_text` | `#1a1a1a` | key label |
 | `key_pressed_top`, `key_pressed_bottom` | `#dcdcdc`, `#c8c8c8` | key while pressed |
@@ -66,7 +70,7 @@ Files live in `data/themes/` (bundled), `/usr/share/tabletkeyboard/themes/`, or
 | `font_family` | `Noto Sans` | – | labels |
 | `font_px` | 15 | px | main label size |
 | `label_px` | 11 | px | shifted hint / long labels |
-| `key_unit` | 72 | px | 1 key unit (the shipped `minimal` theme uses 68) |
+| `key_unit` | 72 | px | 1 key unit (all shipped themes use 72) |
 
 All pixel metrics are multiplied by the theme scale implied by the effective
 key size, and key text shrinks automatically to fit narrow keys.
@@ -87,7 +91,7 @@ touch" note in the README).
 ## Adding a theme
 
 ```sh
-cp data/themes/minimal.json ~/.local/share/tabletkeyboard/themes/mytheme.json
+cp data/themes/win10.json ~/.local/share/tabletkeyboard/themes/mytheme.json
 # edit id -> "mytheme", restart or pick it in Tray -> Theme
 ```
 

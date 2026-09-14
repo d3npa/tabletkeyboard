@@ -21,7 +21,7 @@ private:
     QWidget *buildLookSection();
     QWidget *buildKeysSection();
     QWidget *buildStartupSection();
-    QComboBox *makeThemeCombo(const QString &current);
+    QComboBox *makeThemeCombo(bool dark, const QString &current);
 
     App *app_;
 };

@@ -33,6 +33,7 @@ void ThemePainter::paintKey(QPainter &painter, const QRect &rect, const QRect &b
 
     QColor top;
     QColor bottom;
+    QString mid;
     if (visual.active) {
         top = color(theme_.modActive);
         bottom = color(theme_.modActive).darker(105);
@@ -45,10 +46,13 @@ void ThemePainter::paintKey(QPainter &painter, const QRect &rect, const QRect &b
     } else {
         top = color(theme_.keyTop);
         bottom = color(theme_.keyBottom);
+        mid = theme_.keyMid;
     }
 
     QLinearGradient gradient(rect.topLeft(), rect.bottomLeft());
     gradient.setColorAt(0.0, top);
+    if (!mid.isEmpty())
+        gradient.setColorAt(0.42, color(mid));
     gradient.setColorAt(1.0, bottom);
 
     const qreal borderWidth = qMax(1, qRound(theme_.border * scale));

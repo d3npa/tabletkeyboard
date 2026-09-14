@@ -1,0 +1,33 @@
+{
+  "id": "gold-dark",
+  "name": "Gold Dark",
+  "dark": true,
+  "colors": {
+    "key_top": "#41341f",
+    "key_mid": "#4e3f26",
+    "key_bottom": "#2b2216",
+    "key_border": "#8c6f3b",
+    "key_text": "#ecd9a8",
+    "key_pressed_top": "#241b10",
+    "key_pressed_bottom": "#1c150d",
+    "key_hover": "#564528",
+    "mod_active": "#6f5522",
+    "accent": "#d9b45c",
+    "bar_bg": "#2a2318",
+    "window_bg": "#1d1810",
+    "window_opacity": 0.98,
+    "led_on": "#d9b45c",
+    "led_off": "#6a5c42"
+  },
+  "metrics": {
+    "radius": 3,
+    "border": 1,
+    "gap": 2,
+    "padding": 4,
+    "bar_height": 26,
+    "font_family": "Noto Sans",
+    "font_px": 15,
+    "label_px": 11,
+    "key_unit": 72
+  }
+}

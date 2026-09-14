@@ -52,10 +52,19 @@ App::InitResult App::init(QString *error)
     themes_->scan();
     if (!layouts_->byId(settings_.layoutId))
         settings_.layoutId = layouts_->sets().isEmpty() ? QString() : layouts_->sets().first().id;
-    if (!themes_->byId(settings_.lightTheme))
-        settings_.lightTheme = themes_->themes().isEmpty() ? QString() : themes_->themes().first().id;
-    if (!themes_->byId(settings_.darkTheme))
-        settings_.darkTheme = themes_->themes().isEmpty() ? QString() : themes_->themes().first().id;
+    // A slot must hold a theme of its own variant; an unknown or mismatched id
+    // falls back to the first theme of that variant (scan order).
+    const auto fixThemeSlot = [this](QString &id, bool dark) {
+        const ThemeSpec *theme = themes_->byId(id);
+        if (theme && theme->dark == dark)
+            return;
+        const QVector<const ThemeSpec *> candidates = themes_->byVariant(dark);
+        id = candidates.isEmpty()
+                ? (themes_->themes().isEmpty() ? QString() : themes_->themes().first().id)
+                : candidates.first()->id;
+    };
+    fixThemeSlot(settings_.lightTheme, false);
+    fixThemeSlot(settings_.darkTheme, true);
 
     const QString xtestReason = xconn_.xtestAvailable()
             ? QString()
@@ -289,10 +298,15 @@ bool App::isKeyboardVisible() const
 
 void App::setThemeId(const QString &id)
 {
-    if (!themes_->byId(id))
+    const ThemeSpec *theme = themes_->byId(id);
+    if (!theme)
         return;
+    if (settings_.darkMode != theme->dark) {
+        settings_.darkMode = theme->dark;
+        window_->setDarkMode(settings_.darkMode);
+    }
     settings_.setThemeId(id);
-    window_->setThemeId(id);
+    window_->setThemeId(settings_.themeId());
     window_->rebuild();
     saveSettingsSoon();
 }

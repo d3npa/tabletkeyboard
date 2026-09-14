@@ -30,11 +30,11 @@ SettingsDialog::SettingsDialog(App *app, QWidget *parent) : QDialog(parent), app
     layout->addWidget(buttons);
 }
 
-QComboBox *SettingsDialog::makeThemeCombo(const QString &current)
+QComboBox *SettingsDialog::makeThemeCombo(bool dark, const QString &current)
 {
     auto *combo = new QComboBox(this);
-    for (const ThemeSpec &theme : app_->themes()->themes())
-        combo->addItem(theme.name, theme.id);
+    for (const ThemeSpec *theme : app_->themes()->byVariant(dark))
+        combo->addItem(theme->name, theme->id);
     const int index = combo->findData(current);
     combo->setCurrentIndex(index >= 0 ? index : 0);
     return combo;
@@ -50,13 +50,13 @@ QWidget *SettingsDialog::buildLookSection()
     connect(darkMode, &QCheckBox::toggled, app_, &App::setDarkMode);
     form->addRow(darkMode);
 
-    auto *lightTheme = makeThemeCombo(app_->settings().lightTheme);
+    auto *lightTheme = makeThemeCombo(false, app_->settings().lightTheme);
     connect(lightTheme, qOverload<int>(&QComboBox::currentIndexChanged), this, [this, lightTheme](int index) {
         app_->setThemeForSlot(false, lightTheme->itemData(index).toString());
     });
     form->addRow(tr("Light theme"), lightTheme);
 
-    auto *darkTheme = makeThemeCombo(app_->settings().darkTheme);
+    auto *darkTheme = makeThemeCombo(true, app_->settings().darkTheme);
     connect(darkTheme, qOverload<int>(&QComboBox::currentIndexChanged), this, [this, darkTheme](int index) {
         app_->setThemeForSlot(true, darkTheme->itemData(index).toString());
     });

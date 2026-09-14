@@ -11,6 +11,7 @@ class TestTheme : public QObject
     Q_OBJECT
 private slots:
     void loadsShippedThemes();
+    void variantListing();
     void rejectsMalformedColor();
     void rejectsBadOpacity();
     void rejectsMissingId();
@@ -24,22 +25,49 @@ QString themePath(const QString &file)
 
 void TestTheme::loadsShippedThemes()
 {
-    for (const QString &id : { QStringLiteral("win10"), QStringLiteral("win10-dark"),
-                               QStringLiteral("minimal"), QStringLiteral("letsnote-gold") }) {
+    for (const QString &id : { QStringLiteral("gold-light"), QStringLiteral("gold-dark"),
+                               QStringLiteral("win10"), QStringLiteral("win10-dark") }) {
         ThemeSpec theme;
         QString error;
         QVERIFY2(ThemeSpec::loadFile(themePath(id + QStringLiteral(".json")), &theme, &error),
                  qPrintable(error));
         QCOMPARE(theme.id, id);
         QVERIFY(!theme.name.isEmpty());
+        QCOMPARE(theme.dark, id == QStringLiteral("gold-dark") || id == QStringLiteral("win10-dark"));
         QVERIFY(isValidColor(theme.keyTop));
         QVERIFY(isValidColor(theme.windowBg));
+        if (id.startsWith(QStringLiteral("gold")))
+            QVERIFY2(isValidColor(theme.keyMid), qPrintable(id));
+        else
+            QVERIFY(theme.keyMid.isEmpty());
         QVERIFY(theme.keyUnit >= 8);
         QVERIFY(theme.fontPx >= 6);
         QVERIFY(theme.barHeight >= 8);
         QVERIFY(theme.windowOpacity > 0.0 && theme.windowOpacity <= 1.0);
         QVERIFY(!Lint::hasErrors(Lint::check(theme)));
     }
+}
+
+void TestTheme::variantListing()
+{
+    ThemeLibrary library;
+    library.scan();
+    QStringList lightIds;
+    QStringList darkIds;
+    for (const ThemeSpec *theme : library.byVariant(false)) {
+        QVERIFY(!theme->dark);
+        lightIds << theme->id;
+    }
+    for (const ThemeSpec *theme : library.byVariant(true)) {
+        QVERIFY(theme->dark);
+        darkIds << theme->id;
+    }
+    QVERIFY(lightIds.contains(QStringLiteral("gold-light")));
+    QVERIFY(lightIds.contains(QStringLiteral("win10")));
+    QVERIFY(darkIds.contains(QStringLiteral("gold-dark")));
+    QVERIFY(darkIds.contains(QStringLiteral("win10-dark")));
+    QVERIFY(!lightIds.contains(QStringLiteral("win10-dark")));
+    QVERIFY(!darkIds.contains(QStringLiteral("gold-light")));
 }
 
 void TestTheme::rejectsMalformedColor()

@@ -1,8 +1,10 @@
 {
-  "id": "letsnote-gold",
-  "name": "Let's Note 25th Gold",
+  "id": "gold-light",
+  "name": "Gold Light",
+  "dark": false,
   "colors": {
     "key_top": "#efe6cd",
+    "key_mid": "#f7f1de",
     "key_bottom": "#dccaa2",
     "key_border": "#b3a074",
     "key_text": "#2f2a20",
@@ -11,11 +13,11 @@
     "key_hover": "#f6efdc",
     "mod_active": "#d9c48d",
     "accent": "#a8853a",
-    "bar_bg": "#2a2620",
-    "window_bg": "#1d1a15",
-    "window_opacity": 0.98,
-    "led_on": "#d9b45c",
-    "led_off": "#6b6558"
+    "bar_bg": "#f4ecda",
+    "window_bg": "#e9dfc7",
+    "window_opacity": 1.0,
+    "led_on": "#c9a13c",
+    "led_off": "#c2b494"
   },
   "metrics": {
     "radius": 3,

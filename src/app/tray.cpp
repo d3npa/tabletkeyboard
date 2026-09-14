@@ -79,11 +79,11 @@ void Tray::rebuildMenu()
 
     if (app_->themes()->themes().size() > 1) {
         QMenu *themeMenu = menu_->addMenu(tr("Theme"));
-        for (const ThemeSpec &theme : app_->themes()->themes()) {
-            QAction *action = themeMenu->addAction(theme.name);
+        for (const ThemeSpec *theme : app_->themes()->byVariant(app_->settings().darkMode)) {
+            QAction *action = themeMenu->addAction(theme->name);
             action->setCheckable(true);
-            action->setChecked(theme.id == app_->settings().themeId());
-            const QString id = theme.id;
+            action->setChecked(theme->id == app_->settings().themeId());
+            const QString id = theme->id;
             connect(action, &QAction::triggered, this, [this, id]() { app_->setThemeId(id); });
         }
     }

@@ -13,9 +13,11 @@ struct ThemeSpec
 {
     QString id;
     QString name;
+    bool dark = false; // false = light variant; the Light/Dark pickers list matching themes only
 
     QString keyTop = QStringLiteral("#fdfdfd");
     QString keyBottom = QStringLiteral("#f0f0f0");
+    QString keyMid; // optional middle gradient stop for a metallic sheen (empty = two stops)
     QString keyBorder = QStringLiteral("#c8c8c8");
     QString keyText = QStringLiteral("#1a1a1a");
     QString keyPressedTop = QStringLiteral("#dcdcdc");
@@ -52,6 +54,7 @@ public:
 
     const QVector<ThemeSpec> &themes() const { return themes_; }
     const ThemeSpec *byId(const QString &id) const;
+    QVector<const ThemeSpec *> byVariant(bool dark) const; // scan order (file-name order)
     const QStringList &errors() const { return errors_; }
 
 private:
