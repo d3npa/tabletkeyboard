@@ -8,9 +8,16 @@ QStringList modifierIds()
              QStringLiteral("super"), QStringLiteral("altgr") };
 }
 
+QStringList allModifierIds()
+{
+    QStringList ids = modifierIds();
+    ids.append(QStringLiteral("fn"));
+    return ids;
+}
+
 bool isModifierId(const QString &mod)
 {
-    return modifierIds().contains(mod);
+    return allModifierIds().contains(mod);
 }
 
 QString modifierKeysymName(const QString &mod)

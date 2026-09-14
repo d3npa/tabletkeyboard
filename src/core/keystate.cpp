@@ -11,11 +11,12 @@ KeyStateMachine::KeyStateMachine(const KeysymResolver *resolver, const LayoutLib
     repeatTimer_->setSingleShot(false);
     connect(repeatTimer_, &QTimer::timeout, this, &KeyStateMachine::repeatTick);
 
-    for (const QString &mod : modifierIds()) {
+    for (const QString &mod : allModifierIds()) {
         quint32 keysym = 0;
         if (resolver_)
             resolver_->fromName(modifierKeysymName(mod), &keysym);
-        modKeysyms_.insert(mod, keysym);
+        if (keysym != 0)
+            modKeysyms_.insert(mod, keysym);
     }
 
     if (library_ && !library_->sets().isEmpty()) {
@@ -231,17 +232,23 @@ Output KeyStateMachine::buildKeyTap(const KeyDef &key)
 {
     Output out;
 
-    QStringList active;
-    for (const QString &mod : modifierIds()) {
+    QStringList active; // every active modifier, "fn" included
+    for (const QString &mod : allModifierIds()) {
         if (modActive(mod))
             active.append(mod);
     }
 
-    for (const QString &mod : active)
+    QStringList scriptMods; // only the modifiers that are pressed through X
+    for (const QString &mod : modifierIds()) {
+        if (active.contains(mod))
+            scriptMods.append(mod);
+    }
+
+    for (const QString &mod : scriptMods)
         out.script.append(KeyAction(KeyAction::Down, modKeysym(mod)));
     out.script.append(KeyAction(KeyAction::Tap, targetKeysym(key)));
-    for (int i = active.size() - 1; i >= 0; --i)
-        out.script.append(KeyAction(KeyAction::Up, modKeysym(active.at(i))));
+    for (int i = scriptMods.size() - 1; i >= 0; --i)
+        out.script.append(KeyAction(KeyAction::Up, modKeysym(scriptMods.at(i))));
 
     for (const QString &mod : active) {
         ModInfo *info = mods_.value(mod, nullptr);
@@ -257,6 +264,8 @@ Output KeyStateMachine::buildKeyTap(const KeyDef &key)
 
 quint32 KeyStateMachine::targetKeysym(const KeyDef &key) const
 {
+    if (key.fnCode != 0 && modActive(QLatin1String("fn")))
+        return key.fnCode;
     if (key.shiftedCode != 0 && shiftActive())
         return key.shiftedCode;
     return key.symCode;

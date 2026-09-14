@@ -48,6 +48,41 @@ Receiver: `xev`; driver: XTEST clicks on the OSK.
 | Hide/show via CLI | window unmaps and remaps; position clamped on-screen | pass |
 | Idle CPU | ~0 % (0 s of CPU over 5 s) | pass |
 
+## v2 pass (dark default, blocks, Fn layer, JIS Return, key size)
+
+Same harness (Xvfb 1600×1000 + `xev`, and the target device with KWin, Plasma
+scaling 2×). Driver: XTEST clicks on the OSK at coordinates derived from the
+layout geometry.
+
+| Scenario | Expectation | Result |
+|---|---|---|
+| Fresh config, `--show` | dark theme (`win10-dark`), no F-row, no numpad; window 1336×404 on 1600×1000, 5 rows, 72 px keys | pass |
+| Fn (us) then `1` | exactly one `Tap(F1)`; no `1`; Fn one-shot consumed (unit test + xev: 2 `0xffbe` lines) | pass |
+| Shift + Fn then `1` | `[Shift↓, F1, Shift↑]`, both one-shots consumed | pass (unit test) |
+| Fn alone | no injected events | pass (unit test) |
+| jp106 Return, lower part | `keysym 0xff0d, Return` (dev screen and device) | pass |
+| jp106 Return, upper part | `keysym 0xff0d, Return` | pass |
+| jp106 Return, notch (0.25 u left of the body) | the `]` key answers (`0x5d, bracketright`), never Return; where nothing covers the notch the press falls through to the window | pass |
+| Title-bar Dark/Light button | flips live on click: screenshot mean 0.197 → 0.946 → 0.197 | pass |
+| `--light` / `--dark` | light mean 0.94, dark mean 0.20 | pass |
+| `--blocks frow,numpad` | window grows (5 → 6 rows, numpad block appears), screenshot shows Esc/F1–F12 and the numpad | pass |
+| `general/keyUnit=100` | window 1592×481 (vs 1336×404) — bigger keys; the value survives the app's config rewrite | pass |
+| `general/keyUnit=200` | clamped by the fit-to-screen unit (~86 px): same window as 100, keys are not 200 px | pass |
+| Device (KWin, 2× scaling, jp106) | 2676×808 physical window, dark (mean 0.199), 5 rows, no numpad, stepped Return visible | pass |
+| Device Fn + `1` | `keysym 0xffbe, F1`, no plain `1` | pass |
+| Device 半/全 in Kate | `fcitx5-remote` 1 → 2 → 1 | pass |
+| Unit tests (`tst_layout`, `tst_geometry`, `tst_keystate`, `tst_theme`) | pass on Qt 5.15.19 (dev) and Qt 5.15.3 (target) | pass |
+
+Notes:
+
+- The notch of the JIS Return is physically the domain of the `]` key (the
+  Return's upper part is 0.25 u wider than its lower part), so pressing it types
+  `]` — the same as on hardware. The key widget still ignores presses in the
+  notch so the window can be dragged there when no key covers it.
+- Key sizes are Qt logical pixels: the target session runs at a 2× scale
+  factor, so the default 72 px is 144 physical px ≈ 38 mm there; `keyUnit=36`
+  gives ≈19 mm. See the README's "Sizing for touch".
+
 ## Performance targets
 
 | Target | Requirement | Measured |

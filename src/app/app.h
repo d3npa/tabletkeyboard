@@ -51,6 +51,9 @@ public:
     void setLayoutId(const QString &id);
     void setScale(double scale);
     void setAutostart(bool on);
+    void setDarkMode(bool on);
+    void toggleDarkMode();
+    void setBlockVisible(const QString &id, bool visible); // "frow" | "numpad"
 
     const LayoutLibrary *layouts() const { return layouts_; }
     const ThemeLibrary *themes() const { return themes_; }
@@ -66,6 +69,7 @@ private slots:
 
 private:
     void saveSettingsSoon();
+    void applyBlocks(); // settings -> window
 
     X11Connection xconn_;
     std::unique_ptr<XlibKeysymResolver> resolver_;

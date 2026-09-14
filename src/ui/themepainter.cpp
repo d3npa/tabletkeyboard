@@ -3,6 +3,7 @@
 #include <QFontMetricsF>
 #include <QLinearGradient>
 #include <QPainter>
+#include <QPainterPath>
 
 namespace osk {
 
@@ -24,7 +25,8 @@ void ThemePainter::paintBar(QPainter &painter, const QRect &rect) const
     painter.fillRect(rect, color(theme_.barBg));
 }
 
-void ThemePainter::paintKey(QPainter &painter, const QRect &rect, const KeyVisual &visual, double scale) const
+void ThemePainter::paintKey(QPainter &painter, const QRect &rect, const QRect &bodyRect,
+                            const KeyVisual &visual, double scale) const
 {
     painter.save();
     painter.setRenderHint(QPainter::Antialiasing, true);
@@ -58,10 +60,31 @@ void ThemePainter::paintKey(QPainter &painter, const QRect &rect, const KeyVisua
     const qreal radius = theme_.radius * scale;
     painter.setPen(pen);
     painter.setBrush(gradient);
-    painter.drawRoundedRect(keyRect, radius, radius);
+
+    QRectF textRect;
+    if (bodyRect.isEmpty()) {
+        painter.drawRoundedRect(keyRect, radius, radius);
+        textRect = keyRect;
+    } else {
+        // Stepped key (JIS Return): the first row unit is `topWidth` units wide,
+        // everything below is the key's own width, right-aligned. The two parts
+        // are drawn as one united path; they overlap by a pixel so the union
+        // stays a single connected shape.
+        const QRectF body = QRectF(bodyRect).translated(keyRect.topLeft() - QPointF(rect.topLeft()))
+                                   .adjusted(borderWidth / 2.0, borderWidth / 2.0, -borderWidth / 2.0,
+                                             -borderWidth / 2.0);
+        const QRectF top(keyRect.x(), keyRect.y(), keyRect.width(), body.top() - keyRect.y() + 1.0);
+
+        QPainterPath topPath;
+        topPath.addRoundedRect(top, radius, radius);
+        QPainterPath bodyPath;
+        bodyPath.addRoundedRect(body, radius, radius);
+        painter.drawPath(topPath.united(bodyPath));
+        textRect = body;
+    }
 
     const qreal padding = qMax(2.0, theme_.padding * scale);
-    const QRectF textRect = keyRect.adjusted(padding, padding / 2, -padding, -padding / 2);
+    textRect = textRect.adjusted(padding, padding / 2, -padding, -padding / 2);
 
     QFont font(theme_.fontFamily);
     font.setPixelSize(qMax(6, qRound(theme_.fontPx * scale)));

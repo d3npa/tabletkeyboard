@@ -18,9 +18,18 @@ public:
     bool zenkakuOnLangSwitch = false;
     bool startAtLogin = false;
     bool onAllDesktops = true;
-    QString themeId = QStringLiteral("win10");
+    bool darkMode = true;
+    QString lightTheme = QStringLiteral("win10");
+    QString darkTheme = QStringLiteral("win10-dark");
+    bool showFrow = false;
+    bool showNumpad = false;
+    int keyUnit = 72; // absolute key size in px; 0 = use the theme's key_unit
     QString layoutId = QStringLiteral("us");
     QString modeId = QStringLiteral("full");
+
+    // The theme of the mode that is currently on.
+    QString themeId() const { return darkMode ? darkTheme : lightTheme; }
+    void setThemeId(const QString &id) { (darkMode ? darkTheme : lightTheme) = id; }
 
     QPoint positionFor(const QString &screen) const;
     void setPosition(const QString &screen, const QPoint &pos);

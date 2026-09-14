@@ -12,19 +12,26 @@ only uses ICCCM/EWMH + XTEST.
 
 - **Data-driven layouts**: `us` and `jp106` ship as JSON, each with a `full`
   mode (desktop keyboard, F-row, nav cluster, numpad) and a `simple` mode
-  (thumb typing with a symbols layer).
+  (thumb typing with a symbols layer). JIS Return, including the tall stepped
+  keycap, is described by data (`height`, `topWidth`).
+- **Dark by default**, with the light/dark theme pair, the F-row and the numpad
+  as live toggles (title bar, tray, CLI, config file). The F-row is also
+  reachable as an **Fn layer**: Fn + the number row sends F1–F12 and Esc.
 - **Sticky modifiers**: Shift/Ctrl/Alt/Super/AltGr — tap once for one-shot, tap
   again or long-press to lock; state is visible on the key. CapsLock/NumLock
-  are read from the X server (`XkbStateNotify`) and shown truthfully.
+  are read from the X server (`XkbStateNotify`) and shown truthfully. Fn is
+  OSK-local: it changes which keysym a key sends and injects nothing by itself.
+- **Key size is configurable** (`general/keyUnit`, px per key unit), defaulting
+  to 72 px — roughly double v1, and still capped by the fit-to-screen width.
 - **Floating focusless window**: frameless, always-on-top, `WM_HINTS.input =
   False`, skip-taskbar, sticky across desktops. Drag anywhere on the bar or the
   gaps; the position is remembered per screen. The window never takes focus, so
   injected keys always land in the application you were typing in.
-- **Themes**: JSON (`win10` default, `win10-dark`, `minimal`); custom-painted
-  keys, no stylesheet magic.
+- **Themes**: JSON (`win10-dark` default, `win10` light, `minimal`);
+  custom-painted keys, no stylesheet magic.
 - **Tray icon** (`QSystemTrayIcon`; on X11 this is an XEmbed item, which Plasma
   bridges to its SNI tray through `xembedsniproxy`): show/hide, mode, language,
-  theme, scale, start-at-login, quit.
+  dark mode, blocks, theme, scale, start-at-login, quit.
 - **Single instance**: a second invocation forwards its command line to the
   running instance.
 - **Key hold repeats** (Backspace, arrows, …), hold-to-lock modifiers, and an
@@ -58,6 +65,7 @@ tabletkeyboard --show
 tabletkeyboard --toggle
 tabletkeyboard --mode simple --lang jp106
 tabletkeyboard --theme win10-dark --scale 1.25
+tabletkeyboard --light --blocks frow,numpad
 tabletkeyboard --check-layout data/layouts/jp106.json
 ```
 
@@ -66,8 +74,10 @@ tabletkeyboard --check-layout data/layouts/jp106.json
 | `--show` / `--hide` / `--toggle` | window visibility |
 | `--mode full\|simple` | keyboard mode |
 | `--lang ID` | layout set (`us`, `jp106`, …) |
-| `--theme ID` | theme (`win10`, `win10-dark`, `minimal`, …) |
+| `--theme ID` | theme id for the active (dark or light) slot |
 | `--scale FACTOR` | keyboard scale, 0.5 – 3.0 |
+| `--dark` / `--light` | dark or light theme for the keyboard |
+| `--blocks ID[,ID]` | blocks to show: `frow`, `numpad` (anything else is always shown) |
 | `--check-layout FILE` | lint a layout file against the current display, then exit |
 | `--version`, `--help` | |
 
@@ -81,12 +91,26 @@ arguments and exits.
 | Key | Default | Meaning |
 |---|---|---|
 | `general/scale` | `1.0` | keyboard scale |
+| `general/keyUnit` | `72` | key size in Qt logical px per key unit; `0` = the theme's `key_unit` |
 | `general/stickyTimeoutMs` | `0` | auto-clear a one-shot modifier after N ms (0 = never) |
 | `general/zenkakuOnLangSwitch` | `false` | also send 半角/全角 when switching language (opt-in Windows-like coupling; the OSK never touches fcitx5 otherwise) |
 | `general/startAtLogin` | `false` | mirrors the autostart file |
 | `general/onAllDesktops` | `true` | `_NET_WM_DESKTOP = 0xFFFFFFFF` |
-| `general/theme`, `general/layout`, `general/mode` | `win10`, `us`, `full` | last used |
+| `general/layout`, `general/mode` | `us`, `full` | last used |
+| `theme/darkMode` | `true` | dark theme on |
+| `theme/lightTheme`, `theme/darkTheme` | `win10`, `win10-dark` | theme id per mode |
+| `blocks/frow`, `blocks/numpad` | `false` | show the F1–F12 row / the numpad block |
 | `position/<screen>` | – | window position per screen name |
+
+`general/theme` from v1 is ignored; the theme is now per light/dark slot.
+
+**Sizing for touch.** `keyUnit` is in Qt *logical* pixels, so a HiDPI session
+scales it: on the Let's Note (2880×1920 panel, session scaled 2×) 72 px covers
+2 × 72 physical px ≈ 38 mm, and `keyUnit=36` gives ≈19 mm. The window never
+exceeds 98 % of the screen width — the fit shrinks the keys if a wide layout
+with the numpad and the F-row would not fit. QSettings writes `general/*` into
+the `[%General]` group (`general` would collide with the file's `[General]`
+section); a hand-written top-level `keyUnit=…` line is accepted as well.
 
 ## Layouts and themes
 

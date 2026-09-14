@@ -42,7 +42,7 @@ private:
     bool pressed_ = false;
 };
 
-// Drag surface plus [Full/Simple] [Language] [Hide], and an XTEST warning.
+// Drag surface plus [Full/Simple] [Language] [Dark] [Hide], and an XTEST warning.
 class TitleBar : public QWidget
 {
     Q_OBJECT
@@ -50,12 +50,13 @@ public:
     explicit TitleBar(QWidget *parent = nullptr);
 
     void applyTheme(const ThemeSpec &theme, double scale);
-    void setStatus(const QString &layoutName, const QString &modeName, bool inputAvailable,
+    void setStatus(const QString &layoutName, const QString &modeName, bool darkMode, bool inputAvailable,
                    const QString &inputWarning);
 
 signals:
     void toggleModeRequested();
     void toggleLanguageRequested();
+    void toggleDarkModeRequested();
     void hideRequested();
     void dragStarted(const QPoint &globalPos);
     void dragMoved(const QPoint &globalPos);
@@ -70,6 +71,7 @@ protected:
 private:
     BarButton *modeButton_;
     BarButton *languageButton_;
+    BarButton *darkButton_;
     BarButton *hideButton_;
     QLabel *warningLabel_;
     QColor barBg_ = QColor(0xf4, 0xf4, 0xf4);

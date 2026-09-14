@@ -1,4 +1,5 @@
 #include "ui/keyboardwindow.h"
+#include "core/geometry.h"
 #include "core/keystate.h"
 #include "core/layout.h"
 #include "core/theme.h"
@@ -7,13 +8,14 @@
 #include "ui/titlebar.h"
 
 #include <QGuiApplication>
-#include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QScreen>
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QWindow>
+
+#include <limits>
 
 namespace osk {
 
@@ -31,6 +33,7 @@ KeyboardWindow::KeyboardWindow(KeyStateMachine *machine, const ThemeLibrary *the
     connect(titleBar_, &TitleBar::dragStarted, this, &KeyboardWindow::beginDrag);
     connect(titleBar_, &TitleBar::dragMoved, this, &KeyboardWindow::dragTo);
     connect(titleBar_, &TitleBar::dragFinished, this, &KeyboardWindow::endDrag);
+    connect(titleBar_, &TitleBar::toggleDarkModeRequested, this, &KeyboardWindow::darkModeToggleRequested);
 
     rootLayout_ = new QVBoxLayout(this);
     rootLayout_->setContentsMargins(0, 0, 0, 0);
@@ -56,13 +59,28 @@ void KeyboardWindow::setThemeId(const QString &id)
     themeId_ = id;
 }
 
+void KeyboardWindow::setHiddenBlocks(const QSet<QString> &ids)
+{
+    hiddenBlocks_ = ids;
+}
+
+void KeyboardWindow::setDarkMode(bool on)
+{
+    darkMode_ = on;
+}
+
+void KeyboardWindow::setKeyUnit(int px)
+{
+    keyUnit_ = qMax(0, px);
+}
+
 void KeyboardWindow::setInputStatus(bool available, const QString &reason)
 {
     inputAvailable_ = available;
     inputWarning_ = reason;
     if (titleBar_) {
         titleBar_->setStatus(machine_->layout() ? machine_->layout()->name : QString(),
-                             modeTitle(), inputAvailable_, inputWarning_);
+                             modeTitle(), darkMode_, inputAvailable_, inputWarning_);
     }
 }
 
@@ -108,14 +126,30 @@ void KeyboardWindow::doRebuild()
 
     painter_.reset(new ThemePainter(*theme));
 
-    const int gap = qMax(0, qRound(theme->gap * scale_));
-    const int padding = qRound(theme->padding * scale_);
-    unit_ = fitUnit(*theme, theme->keyUnit * scale_, gap);
-    const int rowHeight = qRound(unit_);
+    const double gapRatio = double(theme->gap) / theme->keyUnit;
+    const double paddingRatio = double(theme->padding) / theme->keyUnit;
+    const double baseUnit = keyUnit_ > 0 ? keyUnit_ : theme->keyUnit;
 
-    titleBar_->applyTheme(*theme, scale_);
+    QVector<const Block *> blocks;
+    if (const Layer *layer = machine_->layer()) {
+        for (const Block &block : layer->blocks)
+            blocks.append(&block);
+    }
+
+    const QScreen *primaryScreen = QGuiApplication::primaryScreen();
+    const int availableWidth = primaryScreen
+            ? primaryScreen->availableGeometry().width() * 98 / 100
+            : std::numeric_limits<int>::max();
+    const double fit = fitKeyUnit(blocks, hiddenBlocks_, gapRatio, paddingRatio, availableWidth);
+    unit_ = qMax(10.0, qMin(fit, scale_ * baseUnit));
+
+    const double uiScale = qMax(0.1, unit_ / theme->keyUnit);
+    const int gap = qMax(0, qRound(theme->gap * uiScale));
+    const int padding = qRound(theme->padding * uiScale);
+
+    titleBar_->applyTheme(*theme, uiScale);
     titleBar_->setStatus(machine_->layout() ? machine_->layout()->name : QString(), modeTitle(),
-                         inputAvailable_, inputWarning_);
+                         darkMode_, inputAvailable_, inputWarning_);
 
     rootLayout_->setContentsMargins(padding, padding, padding, padding);
     rootLayout_->setSpacing(qMax(0, padding / 2));
@@ -124,7 +158,7 @@ void KeyboardWindow::doRebuild()
         delete content_;
         content_ = nullptr;
     }
-    content_ = buildContent(rowHeight, gap);
+    content_ = buildContent(blocks, gap, uiScale);
     rootLayout_->addWidget(content_);
 
     setWindowOpacity(theme->windowOpacity);
@@ -132,87 +166,30 @@ void KeyboardWindow::doRebuild()
     setFixedSize(sizeHint());
 }
 
-QWidget *KeyboardWindow::buildContent(int rowHeight, int gap)
+QWidget *KeyboardWindow::buildContent(const QVector<const Block *> &blocks, int gap, double uiScale)
 {
     auto *content = new QWidget(this);
-    auto *layout = new QHBoxLayout(content);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(gap);
 
-    const Layer *layer = machine_->layer();
-    if (layer) {
-        for (const Block &block : layer->blocks)
-            layout->addWidget(buildBlock(block, unit_, rowHeight, gap));
+    const LayerGeometry geometry = computeLayerGeometry(blocks, hiddenBlocks_, { unit_, gap });
+    content->setFixedSize(geometry.size);
+
+    for (const BlockPlacement &block : geometry.blocks) {
+        for (const KeyPlacement &placement : block.keys) {
+            if (!placement.key)
+                continue;
+            QWidget *widget = nullptr;
+            if (placement.key->type == KeyDef::Spacer) {
+                widget = new QWidget(content);
+                widget->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+            } else {
+                widget = new KeyButton(*placement.key, machine_, painter_.get(), uiScale,
+                                       placement.rect.size(),
+                                       placement.bodyRect.translated(-placement.rect.topLeft()), content);
+            }
+            widget->setGeometry(placement.rect);
+        }
     }
     return content;
-}
-
-QWidget *KeyboardWindow::buildBlock(const Block &block, double unit, int rowHeight, int gap)
-{
-    auto *widget = new QWidget(this);
-    auto *column = new QVBoxLayout(widget);
-    column->setContentsMargins(0, 0, 0, 0);
-    column->setSpacing(gap);
-
-    const double blockUnits = block.widthUnits();
-    if (block.topGap > 0)
-        column->addSpacing(qRound(block.topGap * rowHeight));
-
-    for (const KeyRow &row : block.rows) {
-        auto *rowWidget = new QWidget(widget);
-        auto *rowLayout = new QHBoxLayout(rowWidget);
-        rowLayout->setContentsMargins(0, 0, 0, 0);
-        rowLayout->setSpacing(gap);
-
-        double rowUnits = 0;
-        for (const KeyDef &key : row)
-            rowUnits += key.width;
-        const int lead = qRound((blockUnits - rowUnits) * unit / 2.0);
-        if (lead > 1)
-            rowLayout->addSpacing(lead);
-
-        for (const KeyDef &key : row) {
-            if (key.type == KeyDef::Spacer) {
-                auto *spacer = new QWidget(rowWidget);
-                spacer->setAttribute(Qt::WA_TransparentForMouseEvents, true);
-                spacer->setFixedSize(qMax(1, qRound(key.width * unit)), rowHeight);
-                rowLayout->addWidget(spacer);
-            } else {
-                auto *button = new KeyButton(key, machine_, painter_.get(), scale_, qRound(unit), rowHeight,
-                                             rowWidget);
-                rowLayout->addWidget(button);
-            }
-        }
-        rowLayout->addStretch(1);
-        column->addWidget(rowWidget);
-    }
-
-    column->addStretch(1);
-    return widget;
-}
-
-double KeyboardWindow::fitUnit(const ThemeSpec &theme, double baseUnit, int gap) const
-{
-    const Layer *layer = machine_->layer();
-    if (!layer || layer->blocks.isEmpty())
-        return baseUnit;
-
-    double totalUnits = 0;
-    for (const Block &block : layer->blocks)
-        totalUnits += block.widthUnits();
-    if (totalUnits <= 0)
-        return baseUnit;
-
-    const QScreen *screen = QGuiApplication::primaryScreen();
-    if (!screen)
-        return baseUnit;
-
-    const double margins = 2.0 * theme.padding * scale_;
-    const double spacing = double(gap) * qMax(0, layer->blocks.size() - 1);
-    const double available = screen->availableGeometry().width() * 0.98 - margins - spacing;
-    if (baseUnit * totalUnits <= available)
-        return baseUnit;
-    return qMax(10.0, available / totalUnits);
 }
 
 void KeyboardWindow::paintEvent(QPaintEvent *)

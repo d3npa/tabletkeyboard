@@ -52,6 +52,15 @@ bool parseKeyDef(const QJsonValue &value, const KeysymResolver *resolver, const 
     if (!key.indicator.isEmpty())
         key.repeat = false; // never auto-repeat a lock key
 
+    key.height = o.value(QStringLiteral("height")).toDouble(1.0);
+    if (key.height < 1.0)
+        return fail(error, where + QStringLiteral(": height must be >= 1"));
+    if (o.contains(QStringLiteral("topWidth"))) {
+        key.topWidth = o.value(QStringLiteral("topWidth")).toDouble(0.0);
+        if (!(key.topWidth > 0))
+            return fail(error, where + QStringLiteral(": topWidth must be > 0"));
+    }
+
     switch (key.type) {
     case KeyDef::Key: {
         key.sym = o.value(QStringLiteral("sym")).toString();
@@ -62,6 +71,15 @@ bool parseKeyDef(const QJsonValue &value, const KeysymResolver *resolver, const 
         key.shifted = o.value(QStringLiteral("shifted")).toString();
         if (!key.shifted.isEmpty() && resolver && !resolver->fromName(key.shifted, &key.shiftedCode))
             return fail(error, where + QStringLiteral(": unknown keysym \"%1\"").arg(key.shifted));
+        key.fn = o.value(QStringLiteral("fn")).toString();
+        if (!key.fn.isEmpty() && resolver && !resolver->fromName(key.fn, &key.fnCode))
+            return fail(error, where + QStringLiteral(": unknown keysym \"%1\"").arg(key.fn));
+        key.fnLabel = o.value(QStringLiteral("fnLabel")).toString();
+        if (!key.fn.isEmpty() && key.fnLabel.isEmpty()) {
+            key.fnLabel = displayTextForKeysym(key.fnCode);
+            if (key.fnLabel.isEmpty())
+                key.fnLabel = key.fn;
+        }
         if (key.label.isEmpty())
             key.label = displayTextForKeysym(key.symCode);
         if (key.label.isEmpty())
@@ -105,6 +123,7 @@ bool parseBlock(const QJsonValue &value, const KeysymResolver *resolver, const Q
     const QJsonObject o = value.toObject();
 
     Block block;
+    block.id = o.value(QStringLiteral("id")).toString();
     block.topGap = o.value(QStringLiteral("topGap")).toDouble(0.0);
     if (block.topGap < 0)
         return fail(error, where + QStringLiteral(": topGap must be >= 0"));
@@ -114,16 +133,25 @@ bool parseBlock(const QJsonValue &value, const KeysymResolver *resolver, const Q
         return fail(error, where + QStringLiteral(": block needs \"rows\""));
 
     for (int r = 0; r < rows.size(); ++r) {
-        const QJsonArray rowArray = rows.at(r).toArray();
-        if (rowArray.isEmpty())
-            return fail(error, where + QStringLiteral(".rows[%1]: row must be a non-empty array").arg(r));
         KeyRow row;
+        QString keysWhere = where + QStringLiteral(".rows[%1]").arg(r);
+        QJsonArray rowArray;
+        if (rows.at(r).isObject()) {
+            const QJsonObject rowObject = rows.at(r).toObject();
+            row.id = rowObject.value(QStringLiteral("id")).toString();
+            keysWhere += QStringLiteral(".keys");
+            rowArray = rowObject.value(QStringLiteral("keys")).toArray();
+        } else {
+            rowArray = rows.at(r).toArray();
+        }
+        if (rowArray.isEmpty())
+            return fail(error, keysWhere + QStringLiteral(": row must be a non-empty array"));
         for (int k = 0; k < rowArray.size(); ++k) {
             KeyDef key;
-            const QString keyWhere = where + QStringLiteral(".rows[%1][%2]").arg(r).arg(k);
+            const QString keyWhere = keysWhere + QStringLiteral("[%1]").arg(k);
             if (!parseKeyDef(rowArray.at(k), resolver, keyWhere, &key, error))
                 return false;
-            row.append(key);
+            row.keys.append(key);
         }
         block.rows.append(row);
     }
@@ -182,15 +210,19 @@ bool parseMode(const QString &name, const QJsonValue &value, const KeysymResolve
 
 } // namespace
 
+double KeyRow::widthUnits() const
+{
+    double sum = 0;
+    for (const KeyDef &key : keys)
+        sum += qMax(key.width, key.topWidth);
+    return sum;
+}
+
 double Block::widthUnits() const
 {
     double w = 0;
-    for (const KeyRow &row : rows) {
-        double sum = 0;
-        for (const KeyDef &key : row)
-            sum += key.width;
-        w = qMax(w, sum);
-    }
+    for (const KeyRow &row : rows)
+        w = qMax(w, row.widthUnits());
     return w;
 }
 

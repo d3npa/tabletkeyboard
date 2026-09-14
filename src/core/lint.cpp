@@ -79,13 +79,18 @@ QVector<LintIssue> Lint::check(const LayoutSet &set, const KeysymResolver *resol
                     if (row.isEmpty())
                         addError(&issues, layerPath, QStringLiteral("block %1 row %2 is empty").arg(b).arg(r));
 
-                    for (int k = 0; k < row.size(); ++k) {
-                        const KeyDef &key = row.at(k);
+                    for (int k = 0; k < row.keys.size(); ++k) {
+                        const KeyDef &key = row.keys.at(k);
                         const QString keyPath = layerPath
                                 + QStringLiteral("[%1][%2]").arg(r).arg(k);
 
                         if (!(key.width > 0))
                             addError(&issues, keyPath, QStringLiteral("width must be > 0"));
+                        if (key.height < 1.0)
+                            addError(&issues, keyPath, QStringLiteral("height must be >= 1"));
+                        if (key.topWidth > key.width && k != row.keys.size() - 1)
+                            addWarning(&issues, keyPath,
+                                       QStringLiteral("a stepped key must be the last key of its row"));
 
                         switch (key.type) {
                         case KeyDef::Key:

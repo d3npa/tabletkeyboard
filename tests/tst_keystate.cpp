@@ -1,4 +1,5 @@
 #include "core/keystate.h"
+#include "core/keysyms.h"
 #include "core/layout.h"
 #include "platform/x11/symresolver_x11.h"
 
@@ -17,6 +18,10 @@ private slots:
     void shiftLocksOnSecondTap();
     void longPressLocks();
     void ctrlChord();
+    void fnIsNotAnXModifier();
+    void fnAloneSendsNothing();
+    void fnGatesNumberRow();
+    void fnWinsOverShift();
     void layerSwitch();
     void hideAction();
     void repeatWhileHeld();
@@ -62,7 +67,7 @@ const KeyDef *TestKeyState::findKey(const QString &setId, const QString &modeId,
         return nullptr;
     for (const Block &block : layer->blocks) {
         for (const KeyRow &row : block.rows) {
-            for (const KeyDef &key : row) {
+            for (const KeyDef &key : row.keys) {
                 if (key.type == KeyDef::Key && key.symCode == code)
                     return &key;
             }
@@ -81,7 +86,7 @@ const KeyDef *TestKeyState::findMod(const QString &setId, const QString &modeId,
         return nullptr;
     for (const Block &block : layer->blocks) {
         for (const KeyRow &row : block.rows) {
-            for (const KeyDef &key : row) {
+            for (const KeyDef &key : row.keys) {
                 if (key.type == KeyDef::Mod && key.mod == mod)
                     return &key;
             }
@@ -100,7 +105,7 @@ const KeyDef *TestKeyState::findAction(const QString &setId, const QString &mode
         return nullptr;
     for (const Block &block : layer->blocks) {
         for (const KeyRow &row : block.rows) {
-            for (const KeyDef &key : row) {
+            for (const KeyDef &key : row.keys) {
                 if (key.type == KeyDef::Action && key.action == action)
                     return &key;
             }
@@ -233,6 +238,94 @@ void TestKeyState::ctrlChord()
     QCOMPARE(script.at(1).keysym, keysym("c"));
     QCOMPARE(script.at(2).keysym, keysym("Control_L"));
     QCOMPARE(int(machine_.modState(QStringLiteral("ctrl"))), int(KeyStateMachine::Off));
+}
+
+void TestKeyState::fnIsNotAnXModifier()
+{
+    QVERIFY(isModifierId(QStringLiteral("fn")));
+    QVERIFY(modifierKeysymName(QStringLiteral("fn")).isEmpty());
+    QVERIFY(modifierIds().contains(QStringLiteral("ctrl")));
+    QVERIFY(!modifierIds().contains(QStringLiteral("fn")));
+}
+
+void TestKeyState::fnAloneSendsNothing()
+{
+    const KeyDef *fn = findMod(QStringLiteral("us"), QStringLiteral("full"), QStringLiteral("main"),
+                               QStringLiteral("fn"));
+    QVERIFY(fn);
+    QCOMPARE(int(machine_.modState(QStringLiteral("fn"))), int(KeyStateMachine::Off));
+
+    outputs_.clear();
+    machine_.press(*fn);
+    machine_.release(*fn);
+    QCOMPARE(outputs_.size(), 1);
+    QVERIFY(outputs_.first().script.isEmpty());
+    QCOMPARE(int(machine_.modState(QStringLiteral("fn"))), int(KeyStateMachine::OneShot));
+
+    machine_.press(*fn); // second tap locks, third unlocks
+    machine_.release(*fn);
+    machine_.press(*fn);
+    machine_.release(*fn);
+    QCOMPARE(int(machine_.modState(QStringLiteral("fn"))), int(KeyStateMachine::Off));
+}
+
+void TestKeyState::fnGatesNumberRow()
+{
+    const KeyDef *fn = findMod(QStringLiteral("us"), QStringLiteral("full"), QStringLiteral("main"),
+                               QStringLiteral("fn"));
+    const KeyDef *one = findKey(QStringLiteral("us"), QStringLiteral("full"), QStringLiteral("main"),
+                                QStringLiteral("1"));
+    QVERIFY(fn && one);
+
+    machine_.press(*fn);
+    machine_.release(*fn);
+    outputs_.clear();
+    machine_.press(*one);
+    machine_.release(*one);
+
+    QCOMPARE(outputs_.size(), 1);
+    const KeyScript script = outputs_.first().script;
+    QCOMPARE(script.size(), 1); // Fn itself injects nothing
+    QCOMPARE(int(script.first().type), int(KeyAction::Tap));
+    QCOMPARE(script.first().keysym, keysym("F1"));
+    QCOMPARE(int(machine_.modState(QStringLiteral("fn"))), int(KeyStateMachine::Off));
+
+    outputs_.clear();
+    machine_.press(*one);
+    machine_.release(*one);
+    QCOMPARE(outputs_.first().script.first().keysym, keysym("1"));
+}
+
+void TestKeyState::fnWinsOverShift()
+{
+    const KeyDef *shift = findMod(QStringLiteral("us"), QStringLiteral("full"), QStringLiteral("main"),
+                                  QStringLiteral("shift"));
+    const KeyDef *fn = findMod(QStringLiteral("us"), QStringLiteral("full"), QStringLiteral("main"),
+                               QStringLiteral("fn"));
+    const KeyDef *one = findKey(QStringLiteral("us"), QStringLiteral("full"), QStringLiteral("main"),
+                                QStringLiteral("1"));
+    QVERIFY(shift && fn && one);
+
+    machine_.press(*fn);
+    machine_.release(*fn);
+    machine_.press(*shift);
+    machine_.release(*shift);
+
+    outputs_.clear();
+    machine_.press(*one);
+    machine_.release(*one);
+
+    QCOMPARE(outputs_.size(), 1);
+    const KeyScript script = outputs_.first().script;
+    QCOMPARE(script.size(), 3);
+    QCOMPARE(script.at(0).keysym, keysym("Shift_L"));
+    QCOMPARE(int(script.at(0).type), int(KeyAction::Down));
+    QCOMPARE(script.at(1).keysym, keysym("F1"));
+    QCOMPARE(int(script.at(1).type), int(KeyAction::Tap));
+    QCOMPARE(script.at(2).keysym, keysym("Shift_L"));
+    QCOMPARE(int(script.at(2).type), int(KeyAction::Up));
+    QCOMPARE(int(machine_.modState(QStringLiteral("fn"))), int(KeyStateMachine::Off));
+    QCOMPARE(int(machine_.modState(QStringLiteral("shift"))), int(KeyStateMachine::Off));
 }
 
 void TestKeyState::layerSwitch()

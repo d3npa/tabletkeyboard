@@ -60,12 +60,29 @@ void Tray::rebuildMenu()
         }
     }
 
+    QAction *dark = menu_->addAction(tr("Dark mode"));
+    dark->setCheckable(true);
+    dark->setChecked(app_->settings().darkMode); // setChecked before connect: no handler on rebuild
+    connect(dark, &QAction::toggled, app_, &App::setDarkMode);
+
+    QMenu *blocksMenu = menu_->addMenu(tr("Blocks"));
+    QAction *frow = blocksMenu->addAction(tr("F-row"));
+    frow->setCheckable(true);
+    frow->setChecked(app_->settings().showFrow);
+    connect(frow, &QAction::toggled, this,
+            [this](bool on) { app_->setBlockVisible(QStringLiteral("frow"), on); });
+    QAction *numpad = blocksMenu->addAction(tr("Numpad"));
+    numpad->setCheckable(true);
+    numpad->setChecked(app_->settings().showNumpad);
+    connect(numpad, &QAction::toggled, this,
+            [this](bool on) { app_->setBlockVisible(QStringLiteral("numpad"), on); });
+
     if (app_->themes()->themes().size() > 1) {
         QMenu *themeMenu = menu_->addMenu(tr("Theme"));
         for (const ThemeSpec &theme : app_->themes()->themes()) {
             QAction *action = themeMenu->addAction(theme.name);
             action->setCheckable(true);
-            action->setChecked(theme.id == app_->settings().themeId);
+            action->setChecked(theme.id == app_->settings().themeId());
             const QString id = theme.id;
             connect(action, &QAction::triggered, this, [this, id]() { app_->setThemeId(id); });
         }

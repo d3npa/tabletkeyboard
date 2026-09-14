@@ -58,6 +58,8 @@ void printUsage()
                 "  --lang ID              switch layout set (us, jp106, ...)\n"
                 "  --theme ID             switch theme\n"
                 "  --scale FACTOR         keyboard scale (0.5 - 3.0)\n"
+                "  --dark | --light       dark or light theme for the keyboard\n"
+                "  --blocks ID[,ID]       blocks to show: frow, numpad (others are always shown)\n"
                 "  --check-layout FILE    lint a layout file and exit\n"
                 "  --version              print the version and exit\n"
                 "  --help                 this text\n");

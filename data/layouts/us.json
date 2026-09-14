@@ -8,36 +8,40 @@
           "name": "main",
           "blocks": [
             {
+              "id": "main",
               "rows": [
+                {
+                  "id": "frow",
+                  "keys": [
+                    { "type": "key", "label": "Esc", "sym": "Escape", "repeat": false },
+                    { "type": "key", "label": "F1", "sym": "F1", "repeat": false },
+                    { "type": "key", "label": "F2", "sym": "F2", "repeat": false },
+                    { "type": "key", "label": "F3", "sym": "F3", "repeat": false },
+                    { "type": "key", "label": "F4", "sym": "F4", "repeat": false },
+                    { "type": "key", "label": "F5", "sym": "F5", "repeat": false },
+                    { "type": "key", "label": "F6", "sym": "F6", "repeat": false },
+                    { "type": "key", "label": "F7", "sym": "F7", "repeat": false },
+                    { "type": "key", "label": "F8", "sym": "F8", "repeat": false },
+                    { "type": "key", "label": "F9", "sym": "F9", "repeat": false },
+                    { "type": "key", "label": "F10", "sym": "F10", "repeat": false },
+                    { "type": "key", "label": "F11", "sym": "F11", "repeat": false },
+                    { "type": "key", "label": "F12", "sym": "F12", "repeat": false }
+                  ]
+                },
                 [
-                  { "type": "key", "label": "Esc", "sym": "Escape", "repeat": false },
-                  { "type": "key", "label": "F1", "sym": "F1", "repeat": false },
-                  { "type": "key", "label": "F2", "sym": "F2", "repeat": false },
-                  { "type": "key", "label": "F3", "sym": "F3", "repeat": false },
-                  { "type": "key", "label": "F4", "sym": "F4", "repeat": false },
-                  { "type": "key", "label": "F5", "sym": "F5", "repeat": false },
-                  { "type": "key", "label": "F6", "sym": "F6", "repeat": false },
-                  { "type": "key", "label": "F7", "sym": "F7", "repeat": false },
-                  { "type": "key", "label": "F8", "sym": "F8", "repeat": false },
-                  { "type": "key", "label": "F9", "sym": "F9", "repeat": false },
-                  { "type": "key", "label": "F10", "sym": "F10", "repeat": false },
-                  { "type": "key", "label": "F11", "sym": "F11", "repeat": false },
-                  { "type": "key", "label": "F12", "sym": "F12", "repeat": false }
-                ],
-                [
-                  { "type": "key", "label": "`", "sym": "grave", "shifted": "asciitilde" },
-                  { "type": "key", "label": "1", "sym": "1", "shifted": "exclam" },
-                  { "type": "key", "label": "2", "sym": "2", "shifted": "at" },
-                  { "type": "key", "label": "3", "sym": "3", "shifted": "numbersign" },
-                  { "type": "key", "label": "4", "sym": "4", "shifted": "dollar" },
-                  { "type": "key", "label": "5", "sym": "5", "shifted": "percent" },
-                  { "type": "key", "label": "6", "sym": "6", "shifted": "asciicircum" },
-                  { "type": "key", "label": "7", "sym": "7", "shifted": "ampersand" },
-                  { "type": "key", "label": "8", "sym": "8", "shifted": "asterisk" },
-                  { "type": "key", "label": "9", "sym": "9", "shifted": "parenleft" },
-                  { "type": "key", "label": "0", "sym": "0", "shifted": "parenright" },
-                  { "type": "key", "label": "-", "sym": "minus", "shifted": "underscore" },
-                  { "type": "key", "label": "=", "sym": "equal", "shifted": "plus" },
+                  { "type": "key", "label": "`", "sym": "grave", "shifted": "asciitilde", "fn": "Escape", "fnLabel": "Esc" },
+                  { "type": "key", "label": "1", "sym": "1", "shifted": "exclam", "fn": "F1" },
+                  { "type": "key", "label": "2", "sym": "2", "shifted": "at", "fn": "F2" },
+                  { "type": "key", "label": "3", "sym": "3", "shifted": "numbersign", "fn": "F3" },
+                  { "type": "key", "label": "4", "sym": "4", "shifted": "dollar", "fn": "F4" },
+                  { "type": "key", "label": "5", "sym": "5", "shifted": "percent", "fn": "F5" },
+                  { "type": "key", "label": "6", "sym": "6", "shifted": "asciicircum", "fn": "F6" },
+                  { "type": "key", "label": "7", "sym": "7", "shifted": "ampersand", "fn": "F7" },
+                  { "type": "key", "label": "8", "sym": "8", "shifted": "asterisk", "fn": "F8" },
+                  { "type": "key", "label": "9", "sym": "9", "shifted": "parenleft", "fn": "F9" },
+                  { "type": "key", "label": "0", "sym": "0", "shifted": "parenright", "fn": "F10" },
+                  { "type": "key", "label": "-", "sym": "minus", "shifted": "underscore", "fn": "F11" },
+                  { "type": "key", "label": "=", "sym": "equal", "shifted": "plus", "fn": "F12" },
                   { "type": "key", "label": "⌫", "sym": "BackSpace", "width": 2 }
                 ],
                 [
@@ -86,16 +90,18 @@
                   { "type": "mod", "mod": "shift", "label": "Shift", "width": 2.75 }
                 ],
                 [
+                  { "type": "mod", "mod": "fn", "label": "Fn", "width": 1.25 },
                   { "type": "mod", "mod": "ctrl", "label": "Ctrl", "width": 1.25 },
                   { "type": "mod", "mod": "super", "label": "Win", "width": 1.25 },
                   { "type": "mod", "mod": "alt", "label": "Alt", "width": 1.25 },
-                  { "type": "key", "label": "", "sym": "space", "width": 8.75 },
+                  { "type": "key", "label": "", "sym": "space", "width": 7.5 },
                   { "type": "mod", "mod": "altgr", "label": "AltGr", "width": 1.25 },
                   { "type": "mod", "mod": "ctrl", "label": "Ctrl", "width": 1.25 }
                 ]
               ]
             },
             {
+              "id": "nav",
               "topGap": 1,
               "rows": [
                 [
@@ -121,6 +127,7 @@
               ]
             },
             {
+              "id": "numpad",
               "topGap": 1,
               "rows": [
                 [

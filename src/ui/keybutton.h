@@ -16,10 +16,12 @@ class KeyButton : public QWidget
 {
     Q_OBJECT
 public:
-    KeyButton(const KeyDef &key, KeyStateMachine *machine, const ThemePainter *painter, double scale,
-              int unitPx, int rowHeight, QWidget *parent = nullptr);
+    // `size` is the key's full widget rect, `bodyRect` the lower part of a
+    // stepped key (JIS Return) in widget coordinates, or empty for a plain
+    // rectangle.
+    KeyButton(const KeyDef &key, KeyStateMachine *machine, const ThemePainter *painter, double uiScale,
+              const QSize &size, const QRect &bodyRect, QWidget *parent = nullptr);
 
-    QSize sizeHint() const override;
     const KeyDef &keyDef() const { return key_; }
 
 protected:
@@ -39,8 +41,7 @@ private:
     KeyStateMachine *machine_;
     const ThemePainter *painter_;
     double scale_;
-    int unitPx_;
-    int rowHeight_;
+    QRect bodyRect_;
     bool hovered_ = false;
     bool pressed_ = false;
 };

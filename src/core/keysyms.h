@@ -15,10 +15,14 @@ inline constexpr const char *kSuper = "Super_L";
 inline constexpr const char *kAltGr = "ISO_Level3_Shift";
 }
 
-// The five sticky modifiers, in the order they are pressed.
+// The five sticky modifiers that are pressed through X, in the order they are
+// pressed.
 QStringList modifierIds();
+// Every modifier the OSK knows, including "fn", which changes the keysym a
+// later key sends but has no X keysym of its own.
+QStringList allModifierIds();
 bool isModifierId(const QString &mod);
-QString modifierKeysymName(const QString &mod); // empty for unknown ids
+QString modifierKeysymName(const QString &mod); // empty for unknown ids and "fn"
 
 // Best-effort printable character for a keysym (Latin-1 and Unicode planes),
 // used for shifted hints on keys. Empty when there is no sensible character.

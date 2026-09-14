@@ -31,7 +31,7 @@ Files live in `data/themes/` (bundled), `/usr/share/tabletkeyboard/themes/`, or
     "font_family": "Noto Sans",
     "font_px": 15,
     "label_px": 11,
-    "key_unit": 44
+    "key_unit": 72
   }
 }
 ```
@@ -63,10 +63,16 @@ Files live in `data/themes/` (bundled), `/usr/share/tabletkeyboard/themes/`, or
 | `font_family` | `Noto Sans` | – | labels |
 | `font_px` | 15 | px | main label size |
 | `label_px` | 11 | px | shifted hint / long labels |
-| `key_unit` | 44 | px | 1 key unit; the effective size is scaled by the scale setting and by the fit-to-screen factor |
+| `key_unit` | 72 | px | 1 key unit (the shipped `minimal` theme uses 68) |
 
-All pixel metrics are multiplied by the scale factor (setting, tray menu), and
-key text shrinks automatically to fit narrow keys.
+All pixel metrics are multiplied by the theme scale implied by the effective
+key size, and key text shrinks automatically to fit narrow keys.
+
+The effective key unit is `general/keyUnit` from the config file (default 72),
+or the theme's `key_unit` when the config value is 0; it is then multiplied by
+the Scale setting and capped by the fit-to-screen width. Sizes are Qt *logical*
+pixels, so a HiDPI session scales them by its factor (see the "Sizing for
+touch" note in the README).
 
 ## Behaviour that is not themeable
 

@@ -16,6 +16,7 @@
 #include <QCursor>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QSet>
 #include <QTimer>
 
 namespace osk {
@@ -50,8 +51,10 @@ App::InitResult App::init(QString *error)
     themes_->scan();
     if (!layouts_->byId(settings_.layoutId))
         settings_.layoutId = layouts_->sets().isEmpty() ? QString() : layouts_->sets().first().id;
-    if (!themes_->byId(settings_.themeId))
-        settings_.themeId = themes_->themes().isEmpty() ? QString() : themes_->themes().first().id;
+    if (!themes_->byId(settings_.lightTheme))
+        settings_.lightTheme = themes_->themes().isEmpty() ? QString() : themes_->themes().first().id;
+    if (!themes_->byId(settings_.darkTheme))
+        settings_.darkTheme = themes_->themes().isEmpty() ? QString() : themes_->themes().first().id;
 
     const QString xtestReason = xconn_.xtestAvailable()
             ? QString()
@@ -68,12 +71,16 @@ App::InitResult App::init(QString *error)
 
     window_ = new KeyboardWindow(machine_, themes_);
     window_->setScale(settings_.scale);
-    window_->setThemeId(settings_.themeId);
+    window_->setThemeId(settings_.themeId());
+    window_->setDarkMode(settings_.darkMode);
+    window_->setKeyUnit(settings_.keyUnit);
+    applyBlocks();
     window_->setInputStatus(input_->available(), input_->unavailableReason());
     window_->rebuild();
 
     connect(machine_, &KeyStateMachine::output, this, &App::onOutput);
     connect(window_, &KeyboardWindow::hideRequested, this, &App::hideKeyboard);
+    connect(window_, &KeyboardWindow::darkModeToggleRequested, this, &App::toggleDarkMode);
     connect(window_, &KeyboardWindow::positionChanged, this, &App::onWindowPositionChanged);
     connect(&xconn_, &X11Connection::capsLockChanged, machine_, &KeyStateMachine::setCapsOn);
     connect(&xconn_, &X11Connection::numLockChanged, machine_, &KeyStateMachine::setNumOn);
@@ -130,9 +137,12 @@ void App::handleArgs(const QStringList &args)
     bool show = false;
     bool hide = false;
     bool toggle = false;
+    bool dark = false;
+    bool light = false;
     QString mode;
     QString language;
     QString theme;
+    QString blocks;
     double scale = -1;
 
     for (int i = 0; i < args.size(); ++i) {
@@ -156,9 +166,14 @@ void App::handleArgs(const QStringList &args)
             hide = true;
         else if (arg == QLatin1String("--toggle"))
             toggle = true;
+        else if (arg == QLatin1String("--dark"))
+            dark = true;
+        else if (arg == QLatin1String("--light"))
+            light = true;
         else if (valueFor("--mode", &mode)) {
         } else if (valueFor("--lang", &language)) {
         } else if (valueFor("--theme", &theme)) {
+        } else if (valueFor("--blocks", &blocks)) {
         } else if (arg.startsWith(QLatin1String("--scale"))) {
             QString text;
             if (valueFor("--scale", &text))
@@ -166,6 +181,11 @@ void App::handleArgs(const QStringList &args)
         }
     }
 
+    // Dark/light first: --theme then picks the theme of the active slot.
+    if (dark)
+        setDarkMode(true);
+    if (light)
+        setDarkMode(false);
     if (!theme.isEmpty())
         setThemeId(theme);
     if (!mode.isEmpty())
@@ -174,6 +194,11 @@ void App::handleArgs(const QStringList &args)
         setLayoutId(language);
     if (scale > 0)
         setScale(scale);
+    if (!blocks.isEmpty()) {
+        const QStringList shown = blocks.split(QLatin1Char(','), Qt::SkipEmptyParts);
+        setBlockVisible(QStringLiteral("frow"), shown.contains(QStringLiteral("frow")));
+        setBlockVisible(QStringLiteral("numpad"), shown.contains(QStringLiteral("numpad")));
+    }
 
     if (show)
         showKeyboard();
@@ -250,10 +275,49 @@ void App::setThemeId(const QString &id)
 {
     if (!themes_->byId(id))
         return;
-    settings_.themeId = id;
+    settings_.setThemeId(id);
     window_->setThemeId(id);
     window_->rebuild();
     saveSettingsSoon();
+}
+
+void App::setDarkMode(bool on)
+{
+    if (settings_.darkMode == on)
+        return;
+    settings_.darkMode = on;
+    window_->setDarkMode(on);
+    window_->setThemeId(settings_.themeId());
+    window_->rebuild();
+    saveSettingsSoon();
+}
+
+void App::toggleDarkMode()
+{
+    setDarkMode(!settings_.darkMode);
+}
+
+void App::setBlockVisible(const QString &id, bool visible)
+{
+    if (id == QLatin1String("frow"))
+        settings_.showFrow = visible;
+    else if (id == QLatin1String("numpad"))
+        settings_.showNumpad = visible;
+    else
+        return;
+    applyBlocks();
+    window_->rebuild();
+    saveSettingsSoon();
+}
+
+void App::applyBlocks()
+{
+    QSet<QString> hidden;
+    if (!settings_.showFrow)
+        hidden.insert(QStringLiteral("frow"));
+    if (!settings_.showNumpad)
+        hidden.insert(QStringLiteral("numpad"));
+    window_->setHiddenBlocks(hidden);
 }
 
 void App::setModeId(const QString &id)

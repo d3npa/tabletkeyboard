@@ -8,17 +8,11 @@
 
 namespace osk {
 
-KeyButton::KeyButton(const KeyDef &key, KeyStateMachine *machine, const ThemePainter *painter, double scale,
-                     int unitPx, int rowHeight, QWidget *parent)
-    : QWidget(parent), key_(key), machine_(machine), painter_(painter), scale_(scale), unitPx_(unitPx),
-      rowHeight_(rowHeight)
+KeyButton::KeyButton(const KeyDef &key, KeyStateMachine *machine, const ThemePainter *painter, double uiScale,
+                     const QSize &size, const QRect &bodyRect, QWidget *parent)
+    : QWidget(parent), key_(key), machine_(machine), painter_(painter), scale_(uiScale), bodyRect_(bodyRect)
 {
-    setFixedSize(sizeHint());
-}
-
-QSize KeyButton::sizeHint() const
-{
-    return QSize(qRound(key_.width * unitPx_), rowHeight_);
+    setFixedSize(size);
 }
 
 bool KeyButton::isActive() const
@@ -39,6 +33,13 @@ bool KeyButton::isLocked() const
 
 QString KeyButton::displayLabel() const
 {
+    if (key_.fnCode != 0 && machine_->modState(QLatin1String("fn")) != KeyStateMachine::Off) {
+        if (!key_.fnLabel.isEmpty())
+            return key_.fnLabel;
+        const QString fnText = displayTextForKeysym(key_.fnCode);
+        if (!fnText.isEmpty())
+            return fnText;
+    }
     const QString label = key_.label;
     if (machine_->shiftActive() && label.size() == 1 && label.at(0).isLetter())
         return label.toUpper();
@@ -65,7 +66,7 @@ void KeyButton::paintEvent(QPaintEvent *)
     visual.pressed = pressed_;
     visual.active = isActive();
     visual.locked = isLocked();
-    painter_->paintKey(painter, rect(), visual, scale_);
+    painter_->paintKey(painter, rect(), bodyRect_, visual, scale_);
 }
 
 void KeyButton::mousePressEvent(QMouseEvent *event)
@@ -73,6 +74,15 @@ void KeyButton::mousePressEvent(QMouseEvent *event)
     if (event->button() != Qt::LeftButton) {
         QWidget::mousePressEvent(event);
         return;
+    }
+    if (!bodyRect_.isEmpty()) {
+        // The notch left of a stepped key's lower part belongs to the window,
+        // which drags on any press that no key accepts.
+        const QRect topPart(0, 0, width(), bodyRect_.top());
+        if (!bodyRect_.contains(event->pos()) && !topPart.contains(event->pos())) {
+            event->ignore();
+            return;
+        }
     }
     pressed_ = true;
     update();

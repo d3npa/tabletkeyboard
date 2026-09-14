@@ -32,7 +32,10 @@ public:
 
     void paintBackground(QPainter &painter, const QRect &rect) const;
     void paintBar(QPainter &painter, const QRect &rect) const;
-    void paintKey(QPainter &painter, const QRect &rect, const KeyVisual &visual, double scale) const;
+    // `bodyRect` is the lower part of a stepped key (JIS Return); empty for a
+    // plain rectangular key.
+    void paintKey(QPainter &painter, const QRect &rect, const QRect &bodyRect, const KeyVisual &visual,
+                  double scale) const;
 
 private:
     ThemeSpec theme_;

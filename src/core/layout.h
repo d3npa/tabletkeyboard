@@ -22,18 +22,35 @@ struct KeyDef
     quint32 symCode = 0; // resolved keysym
     QString shifted;     // keysym name sent while Shift is sticky/locked
     quint32 shiftedCode = 0;
+    QString fn;          // keysym name sent while the OSK-local Fn modifier is armed
+    quint32 fnCode = 0;
+    QString fnLabel;     // label shown instead of `label` while Fn is armed
 
-    QString mod;       // shift|ctrl|alt|super|altgr (type Mod)
+    QString mod;       // shift|ctrl|alt|super|altgr|fn (type Mod)
     QString action;    // hide|toggle_mode|toggle_lang|layer (type Action)
     QString layer;     // target layer for action "layer"
     QString indicator; // caps|num: visual state from the X server
     bool repeat = true;
+
+    // Stepped keys (JIS Return): `height` rows tall, `topWidth` units wide in
+    // its first row; the rest of the key is `width` units wide, right-aligned.
+    double height = 1.0;
+    double topWidth = 0.0; // 0 = same as width
 };
 
-using KeyRow = QVector<KeyDef>;
+struct KeyRow
+{
+    QString id; // optional; a row whose id is hidden is skipped
+    QVector<KeyDef> keys;
+
+    // Width of the row in key units; stepped keys count their wider part.
+    double widthUnits() const;
+    bool isEmpty() const { return keys.isEmpty(); }
+};
 
 struct Block
 {
+    QString id; // optional; a block whose id is hidden is skipped
     QVector<KeyRow> rows;
     double topGap = 0.0; // vertical space before the block, in key units
 

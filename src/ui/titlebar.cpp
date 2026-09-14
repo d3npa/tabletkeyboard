@@ -103,6 +103,7 @@ TitleBar::TitleBar(QWidget *parent) : QWidget(parent)
 {
     modeButton_ = new BarButton(QStringLiteral("Full"), this);
     languageButton_ = new BarButton(QStringLiteral("EN"), this);
+    darkButton_ = new BarButton(QStringLiteral("Dark"), this);
     hideButton_ = new BarButton(QStringLiteral("⌄"), this);
     warningLabel_ = new QLabel(this);
     warningLabel_->hide();
@@ -114,10 +115,12 @@ TitleBar::TitleBar(QWidget *parent) : QWidget(parent)
     layout->addStretch(1);
     layout->addWidget(modeButton_);
     layout->addWidget(languageButton_);
+    layout->addWidget(darkButton_);
     layout->addWidget(hideButton_);
 
     connect(modeButton_, &BarButton::clicked, this, &TitleBar::toggleModeRequested);
     connect(languageButton_, &BarButton::clicked, this, &TitleBar::toggleLanguageRequested);
+    connect(darkButton_, &BarButton::clicked, this, &TitleBar::toggleDarkModeRequested);
     connect(hideButton_, &BarButton::clicked, this, &TitleBar::hideRequested);
 }
 
@@ -127,18 +130,19 @@ void TitleBar::applyTheme(const ThemeSpec &theme, double scale)
     const QColor textColor(theme.keyText);
     QColor hover = QColor(theme.accent);
     hover.setAlpha(45);
-    for (BarButton *button : { modeButton_, languageButton_, hideButton_ })
+    for (BarButton *button : { modeButton_, languageButton_, darkButton_, hideButton_ })
         button->applyColors(textColor, hover, scale);
     warningLabel_->setStyleSheet(QStringLiteral("color: %1;").arg(QColor(theme.accent).name()));
     setFixedHeight(qRound(theme.barHeight * scale));
     update();
 }
 
-void TitleBar::setStatus(const QString &layoutName, const QString &modeName, bool inputAvailable,
-                         const QString &inputWarning)
+void TitleBar::setStatus(const QString &layoutName, const QString &modeName, bool darkMode,
+                         bool inputAvailable, const QString &inputWarning)
 {
     modeButton_->setText(modeName);
     languageButton_->setText(layoutName);
+    darkButton_->setText(darkMode ? tr("Dark") : tr("Light"));
     if (inputAvailable) {
         warningLabel_->hide();
     } else {

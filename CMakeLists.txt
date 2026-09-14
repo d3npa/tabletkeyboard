@@ -25,6 +25,8 @@ add_library(osk_core STATIC
     src/core/keystate.cpp
     src/core/layout.h
     src/core/layout.cpp
+    src/core/geometry.h
+    src/core/geometry.cpp
     src/core/lint.h
     src/core/lint.cpp
     src/core/sym_resolver.h
@@ -99,7 +101,7 @@ if (BUILD_TESTING)
     if (NOT TARGET Qt5::Test)
         message(STATUS "Qt5 Test component not found: unit tests disabled")
     else()
-        foreach(test_name tst_layout tst_keystate tst_theme)
+        foreach(test_name tst_layout tst_geometry tst_keystate tst_theme)
             add_executable(${test_name} tests/${test_name}.cpp data/tabletkeyboard.qrc)
             target_compile_definitions(${test_name} PRIVATE
                 TABLETKEYBOARD_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")

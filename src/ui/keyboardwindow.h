@@ -3,8 +3,10 @@
 #include "ui/themepainter.h"
 
 #include <QPoint>
+#include <QSet>
 #include <QSize>
 #include <QString>
+#include <QVector>
 #include <QWidget>
 
 #include <memory>
@@ -34,6 +36,15 @@ public:
     void setThemeId(const QString &id);
     QString themeId() const { return themeId_; }
 
+    // Ids of the blocks and rows that are not shown ("frow", "numpad").
+    void setHiddenBlocks(const QSet<QString> &ids);
+
+    // Title-bar label only: the theme itself is chosen by the app.
+    void setDarkMode(bool on);
+
+    // Absolute key size in px; 0 = the theme's own key_unit.
+    void setKeyUnit(int px);
+
     // Rebuilds the key grid (mode/layer/layout/theme changes). Deferred, so it
     // is safe to call from a key's own event handler.
     void rebuild();
@@ -50,6 +61,7 @@ public:
 signals:
     void hideRequested();
     void positionChanged(const QPoint &pos, const QString &screenName);
+    void darkModeToggleRequested();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -61,9 +73,7 @@ protected:
 private:
     void doRebuild();
     QString modeTitle() const;
-    QWidget *buildContent(int rowHeight, int gap);
-    QWidget *buildBlock(const Block &block, double unit, int rowHeight, int gap);
-    double fitUnit(const ThemeSpec &theme, double baseUnit, int gap) const;
+    QWidget *buildContent(const QVector<const Block *> &blocks, int gap, double uiScale);
     void beginDrag(const QPoint &globalPos);
     void dragTo(const QPoint &globalPos);
     void endDrag();
@@ -78,8 +88,11 @@ private:
     QTimer *positionTimer_ = nullptr;
 
     QString themeId_;
+    QSet<QString> hiddenBlocks_;
     double scale_ = 1.0;
     double unit_ = 44.0;
+    int keyUnit_ = 0;
+    bool darkMode_ = true;
     bool inputAvailable_ = true;
     QString inputWarning_;
     bool rebuildPending_ = false;

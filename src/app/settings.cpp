@@ -18,7 +18,16 @@ void AppSettings::load()
     zenkakuOnLangSwitch = settings.value(QStringLiteral("general/zenkakuOnLangSwitch"), false).toBool();
     startAtLogin = settings.value(QStringLiteral("general/startAtLogin"), false).toBool();
     onAllDesktops = settings.value(QStringLiteral("general/onAllDesktops"), true).toBool();
-    themeId = settings.value(QStringLiteral("general/theme"), QStringLiteral("win10")).toString();
+    darkMode = settings.value(QStringLiteral("theme/darkMode"), true).toBool();
+    lightTheme = settings.value(QStringLiteral("theme/lightTheme"), QStringLiteral("win10")).toString();
+    darkTheme = settings.value(QStringLiteral("theme/darkTheme"), QStringLiteral("win10-dark")).toString();
+    showFrow = settings.value(QStringLiteral("blocks/frow"), false).toBool();
+    showNumpad = settings.value(QStringLiteral("blocks/numpad"), false).toBool();
+    // QSettings escapes the "general" group to "[%General]" because top-level
+    // keys live in "[General]"; accept a hand-written top-level keyUnit too.
+    const QVariant keyUnitInGroup = settings.value(QStringLiteral("general/keyUnit"));
+    keyUnit = keyUnitInGroup.isValid() ? keyUnitInGroup.toInt()
+                                       : settings.value(QStringLiteral("keyUnit"), 72).toInt();
     layoutId = settings.value(QStringLiteral("general/layout"), QStringLiteral("us")).toString();
     modeId = settings.value(QStringLiteral("general/mode"), QStringLiteral("full")).toString();
 
@@ -41,7 +50,12 @@ void AppSettings::save()
     settings.setValue(QStringLiteral("general/zenkakuOnLangSwitch"), zenkakuOnLangSwitch);
     settings.setValue(QStringLiteral("general/startAtLogin"), startAtLogin);
     settings.setValue(QStringLiteral("general/onAllDesktops"), onAllDesktops);
-    settings.setValue(QStringLiteral("general/theme"), themeId);
+    settings.setValue(QStringLiteral("theme/darkMode"), darkMode);
+    settings.setValue(QStringLiteral("theme/lightTheme"), lightTheme);
+    settings.setValue(QStringLiteral("theme/darkTheme"), darkTheme);
+    settings.setValue(QStringLiteral("blocks/frow"), showFrow);
+    settings.setValue(QStringLiteral("blocks/numpad"), showNumpad);
+    settings.setValue(QStringLiteral("general/keyUnit"), keyUnit);
     settings.setValue(QStringLiteral("general/layout"), layoutId);
     settings.setValue(QStringLiteral("general/mode"), modeId);
 

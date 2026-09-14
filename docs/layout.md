@@ -27,17 +27,23 @@ name.
 | row | a list of keys; rows are centred inside their block |
 | key | see below |
 
+Blocks and rows may carry an `id`. The application hides the ids `frow` (the
+F1–F12 row) and `numpad` unless the corresponding block toggle is on; other ids
+are authoring aids. A row is either a plain array of keys or an object with an
+`id` and a `keys` array:
+
 ```json
 {
   "name": "main",
   "blocks": [
     {
+      "id": "main",
       "rows": [
-        [ {"type":"key","label":"1","sym":"1","shifted":"exclam"} ],
-        [ {"type":"key","label":"⌫","sym":"BackSpace","width":2} ]
+        { "id": "frow", "keys": [ {"type":"key","label":"Esc","sym":"Escape"} ] },
+        [ {"type":"key","label":"1","sym":"1","shifted":"exclam","fn":"F1"} ]
       ]
     },
-    { "topGap": 1, "rows": [ /* nav cluster */ ] }
+    { "id": "nav", "topGap": 1, "rows": [ /* nav cluster */ ] }
   ]
 }
 ```
@@ -54,12 +60,15 @@ main block.
 | `width` | number | `1` | key units (1 unit = the base key) |
 | `sym` | string | – | X keysym name, required for `type: key`; resolved with the keysym table and lint-checked |
 | `shifted` | string | – | keysym sent while Shift is sticky/locked (drawn as a small hint on the key) |
-| `mod` | string | – | for `type: mod`: `shift`, `ctrl`, `alt`, `super`, `altgr` |
+| `fn` | string | – | keysym sent while Fn is armed (drawn instead of `label` while Fn is on) |
+| `fnLabel` | string | keysym's character/name | label used for the `fn` keysym |
+| `mod` | string | – | for `type: mod`: `shift`, `ctrl`, `alt`, `super`, `altgr`, `fn` |
 | `action` | string | – | for `type: action`: `hide`, `toggle_mode`, `toggle_lang`, `layer` |
 | `layer` | string | – | target layer name when `action` is `layer` |
 | `indicator` | string | – | `caps` or `num`: the key lights up with the X server's lock state |
 | `repeat` | bool | `true` | hold-to-repeat (auto-disabled for indicator keys) |
-| `longpress` | – | – | reserved; ignored by this version |
+| `height` | number | `1` | rows the key spans (stepped keycaps) |
+| `topWidth` | number | `width` | width of the key's first row unit when it is wider than `width` |
 
 Keysyms are resolved against the X keysym table (`XStringToKeysym`), so any
 name from `keysymdef.h` works: `Henkan`, `Muhenkan`, `Hiragana_Katakana`,
@@ -90,6 +99,27 @@ sent and the X server applies the shift level. CapsLock is never simulated
 locally: the Caps key sends a normal `Caps_Lock` press and XKB decides letter
 case, exactly like hardware.
 
+`fn` is the one modifier that is not pressed through X — it has no keysym of
+its own. When it is armed, a key with an `fn` keysym sends that keysym instead
+(all other keys behave as usual), and Fn alone injects nothing. The shipped
+layouts put F1–F12 and Esc on the number row's `fn` so the F-row block can stay
+hidden.
+
+## Stepped keys (JIS Return)
+
+A key with `height > 1` spans several rows; `topWidth` widens its first row
+unit, which is what makes the JIS Return L-shaped:
+
+```json
+{ "type": "key", "label": "⏎", "sym": "Return", "width": 1.25, "topWidth": 1.5, "height": 2, "repeat": false }
+```
+
+The key is 1.5 units wide in the Tab row and 1.25 units wide in the home row,
+right-aligned, so the step (notch) sits at its lower left, next to `[` and `]`.
+The area of that notch belongs to the key below-left of it (`]`), as on a
+physical JIS board: a press there types `]`, and if nothing covers it the press
+is passed to the window (drag) instead of the Return key.
+
 ## Actions
 
 | `action` | Effect |
@@ -105,16 +135,22 @@ case, exactly like hardware.
 tabletkeyboard --check-layout path/to/layout.json
 ```
 
-Checks JSON structure, unknown/invalid keysyms, unknown modifiers and action
-targets, duplicate layer names, empty rows and non-positive widths. The unit
-tests run the same lint over the bundled layouts.
+Checks JSON structure, unknown/invalid keysyms (including `fn`), unknown
+modifiers and action targets, duplicate layer names, empty rows, non-positive
+widths, `height < 1` and `topWidth <= 0`. It also warns when a stepped key
+(`topWidth > width`) is not the last key of its row, because its step would
+overlap the next key. The unit tests run the same lint over the bundled
+layouts.
 
 ## Authoring notes
 
 - Rows are centred inside their block, so rows of different total width stay
   symmetric; make the main rows equal (15 units for a 104-key layout) and use
   `spacer` for gaps.
+- A stepped key must be the last key of its row. The row's width counts its
+  `topWidth`, so the rows it spans keep the block's total width.
 - The window is scaled to fit the screen width: a very wide layout gets smaller
-  keys, never clipping.
+  keys, never clipping horizontally.
 - Group related keys into blocks; the nav/numpad clusters in `us.json` are a
-  good template.
+  good template. Give toggleable groups the ids `frow` and `numpad` so the
+  Blocks menu can hide them.
