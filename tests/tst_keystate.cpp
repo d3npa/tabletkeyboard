@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-// Copyright (C) 2026 d3npa <gh@w1t.ch>
 #include "core/keystate.h"
 #include "core/keysyms.h"
 #include "core/layout.h"
