@@ -3,9 +3,9 @@
     <qresource>
         <file>layouts/us.json</file>
         <file>layouts/jp106.json</file>
+        <file>themes/default-dark.json</file>
         <file>themes/default.json</file>
         <file>themes/gold-dark.json</file>
         <file>themes/gold-light.json</file>
-        <file>themes/win10-dark.json</file>
     </qresource>
 </RCC>

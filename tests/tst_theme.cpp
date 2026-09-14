@@ -25,15 +25,15 @@ QString themePath(const QString &file)
 
 void TestTheme::loadsShippedThemes()
 {
-    for (const QString &id : { QStringLiteral("default"), QStringLiteral("gold-light"),
-                               QStringLiteral("gold-dark"), QStringLiteral("win10-dark") }) {
+    for (const QString &id : { QStringLiteral("default"), QStringLiteral("default-dark"),
+                               QStringLiteral("gold-light"), QStringLiteral("gold-dark") }) {
         ThemeSpec theme;
         QString error;
         QVERIFY2(ThemeSpec::loadFile(themePath(id + QStringLiteral(".json")), &theme, &error),
                  qPrintable(error));
         QCOMPARE(theme.id, id);
         QVERIFY(!theme.name.isEmpty());
-        QCOMPARE(theme.dark, id == QStringLiteral("gold-dark") || id == QStringLiteral("win10-dark"));
+        QCOMPARE(theme.dark, id == QStringLiteral("gold-dark") || id == QStringLiteral("default-dark"));
         QVERIFY(isValidColor(theme.keyTop));
         QVERIFY(isValidColor(theme.windowBg));
         if (id.startsWith(QStringLiteral("gold")))
@@ -65,8 +65,8 @@ void TestTheme::variantListing()
     QVERIFY(lightIds.contains(QStringLiteral("gold-light")));
     QVERIFY(lightIds.contains(QStringLiteral("default")));
     QVERIFY(darkIds.contains(QStringLiteral("gold-dark")));
-    QVERIFY(darkIds.contains(QStringLiteral("win10-dark")));
-    QVERIFY(!lightIds.contains(QStringLiteral("win10-dark")));
+    QVERIFY(darkIds.contains(QStringLiteral("default-dark")));
+    QVERIFY(!lightIds.contains(QStringLiteral("default-dark")));
     QVERIFY(!darkIds.contains(QStringLiteral("gold-light")));
 }
 

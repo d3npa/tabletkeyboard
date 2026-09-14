@@ -20,7 +20,7 @@ public:
     bool onAllDesktops = true;
     bool darkMode = true;
     QString lightTheme = QStringLiteral("default");
-    QString darkTheme = QStringLiteral("win10-dark");
+    QString darkTheme = QStringLiteral("default-dark");
     bool showFrow = false;
     bool showNumpad = false;
     bool showKana = true;
