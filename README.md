@@ -1,199 +1,44 @@
 # tabletkeyboard
 
-A zero-privilege on-screen keyboard for X11. Keys are injected through
-**XTEST**, so they enter the X server's normal input path: fcitx5, every
-application and every shortcut behave exactly as they do for the physical
-keyboard. No root, no `uinput`, no window-manager or fcitx5 configuration.
+<img src="docs/img/tabletkeyboard-1.jpg" width="49%" alt="tabletkeyboard over kde's about this system window on a let's note, jp106 layout"> <img src="docs/img/tabletkeyboard-2.jpg" width="49%" alt="tabletkeyboard over kde's about this system window, jp106 layout">
 
-Target: KDE Plasma 5 on X11 (Slackware 15.0); the keyboard is WM-agnostic and
-only uses ICCCM/EWMH + XTEST.
+an on-screen keyboard for x11. keys are injected with xtest, so fcitx5, applications and shortcuts see ordinary key presses - no root, no `uinput`, no configuration changes. the window is frameless, always on top and never takes focus, so whatever you were typing in keeps it.
 
-## Features
+i use it on a let's note cf-qv (slackware 15.0, kde plasma 5, x11), but it is only an x11 client.
 
-- **Data-driven layouts**: `us` and `jp106` ship as JSON, each with a `full`
-  mode (desktop keyboard, F-row, Print/Scroll/Pause + nav cluster, numpad) and a
-  `simple` mode (thumb typing with a symbols layer). JIS Return, including the
-  tall stepped keycap, is described by data (`height`, `topWidth`); jp106 also
-  carries the printed kana legends (`kana`), shown in each key's corner and
-  toggleable.
-- **Dark by default**, with the light/dark theme pair, the F-row and the numpad
-  as live toggles (settings dialog, title bar, tray, CLI, config file). The
-  F-row is also reachable as an **Fn layer**: Fn + the number row sends F1–F12
-  and Esc.
-- **Settings dialog** (title-bar `⚙` or tray → *Settings…*): dark mode, theme
-  per slot, key size, scale, block visibility, kana legends, lock indicators,
-  sticky timeout, 半角/全角 coupling and start-at-login. Every control applies
-  live, and the dialog is non-modal so the keyboard stays usable behind it.
-- **Sticky modifiers**: Shift/Ctrl/Alt/Super/AltGr — tap once for one-shot, tap
-  again or long-press to lock; state is visible on the key. CapsLock/NumLock/
-  ScrollLock are read from the X server (`XkbStateNotify`) and shown truthfully
-  — lit keys plus three pills in the title bar. Fn is OSK-local: it changes
-  which keysym a key sends and injects nothing by itself.
-- **Key size is configurable** (`general/keyUnit`, px per key unit), defaulting
-  to 72 px — roughly double v1, and still capped by the fit-to-screen width.
-- **Floating focusless window**: frameless, always-on-top, `WM_HINTS.input =
-  False`, skip-taskbar, sticky across desktops. Drag anywhere on the bar or the
-  gaps; the position is remembered per screen. The window never takes focus, so
-  injected keys always land in the application you were typing in.
-- **Themes**: JSON; four shipped: `default`/`default-dark` (light/dark, the
-  latter is the default), `gold-light`/`gold-dark` (metallic gold:
-  champagne keys on a warm cream base / dark brown keys with gold highlights).
-  The Light/Dark pickers list only themes of their variant; custom-painted keys,
-  no stylesheet magic.
-- **Tray icon** (`QSystemTrayIcon`; on X11 this is an XEmbed item, which Plasma
-  bridges to its SNI tray through `xembedsniproxy`): show/hide, mode, language,
-  dark mode, blocks, theme, scale, settings, start-at-login, quit.
-- **Single instance**: a second invocation forwards its command line to the
-  running instance.
-- **Key hold repeats** (Backspace, arrows, …), hold-to-lock modifiers, and an
-  optional sticky auto-clear timeout.
-- **Core stays portable**: `osk-core` is QtCore-only and X11-free; the platform
-  layer is one `InputBackend` plus one `WindowAdapter`, so a Wayland backend can
-  be added without touching the core (see `docs/wayland.md`).
+## build
 
-## Requirements
+needs qt5 (core, gui, widgets, network), libxtst, cmake and a c++17 compiler.
 
-- Qt 5.15 (Core, Gui, Widgets, Network; Test for the unit tests)
-- X11 with the XTEST extension (`libXtst`)
-- CMake ≥ 3.16, a C++17 compiler
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+	cmake --build build -j$(nproc)
+	sudo cmake --install build
 
-## Build and install
+there is a thin make wrapper if you prefer: `make`, `make test`, `make install PREFIX=/usr`.
 
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j"$(nproc)"
-ctest --test-dir build            # unit tests
-sudo cmake --install build        # /usr/local (use -DCMAKE_INSTALL_PREFIX=/usr)
-```
+## run
 
-A thin `Makefile` wraps the same flow: `make`, `make test`, `make lint`,
-`make install PREFIX=/usr`, `make clean` (`make help` lists the overridable
-variables).
+	tabletkeyboard          # tray only
+	tabletkeyboard --show
+	tabletkeyboard --toggle
 
-## Run
+a second invocation forwards its arguments to the running instance. `--help` lists the rest.
 
-```sh
-tabletkeyboard                  # hidden, tray only (no tray: window at startup)
-tabletkeyboard --show
-tabletkeyboard --toggle
-tabletkeyboard --mode simple --lang jp106
-tabletkeyboard --theme default-dark --scale 1.25
-tabletkeyboard --light --blocks frow,numpad
-tabletkeyboard --check-layout data/layouts/jp106.json
-```
+## customise
 
-| Option | Effect |
-|---|---|
-| `--show` / `--hide` / `--toggle` | window visibility |
-| `--mode full\|simple` | keyboard mode |
-| `--lang ID` | layout set (`us`, `jp106`, …) |
-| `--theme ID` | theme id; also switches to that theme's light/dark mode |
-| `--scale FACTOR` | keyboard scale, 0.5 – 3.0 |
-| `--dark` / `--light` | dark or light theme for the keyboard |
-| `--blocks ID[,ID]` | blocks to show: `frow`, `numpad` (anything else is always shown) |
-| `--check-layout FILE` | lint a layout file against the current display, then exit |
-| `--version`, `--help` | |
+layouts and themes are plain json - drop your own in and restart:
 
-All of these work on a running instance too: the second process forwards its
-arguments and exits. Options are validated: an unknown option, a missing value
-or an invalid value is reported on stderr and exits with status 2.
+	~/.local/share/tabletkeyboard/layouts/*.json
+	~/.local/share/tabletkeyboard/themes/*.json
 
-## Configuration
+the bundled `us` and `jp106` layouts and the four themes live in `data/`. the fields are described in [docs/layout.md](docs/layout.md) and [docs/theme.md](docs/theme.md), and a layout can be checked before you use it:
 
-`~/.config/tabletkeyboard/tabletkeyboard.conf` (QSettings format):
+	tabletkeyboard --check-layout mylayout.json
 
-| Key | Default | Meaning |
-|---|---|---|
-| `general/scale` | `1.0` | keyboard scale |
-| `general/keyUnit` | `72` | key size in Qt logical px per key unit; `0` = the theme's `key_unit` |
-| `general/stickyTimeoutMs` | `0` | auto-clear a one-shot modifier after N ms (0 = never) |
-| `general/zenkakuOnLangSwitch` | `false` | also send 半角/全角 when switching language (opt-in Windows-like coupling; the OSK never touches fcitx5 otherwise) |
-| `general/startAtLogin` | `false` | mirrors the autostart file |
-| `general/onAllDesktops` | `true` | `_NET_WM_DESKTOP = 0xFFFFFFFF` |
-| `general/layout`, `general/mode` | `us`, `full` | last used |
-| `theme/darkMode` | `true` | dark theme on |
-| `theme/lightTheme`, `theme/darkTheme` | `default`, `default-dark` | theme id per mode |
-| `blocks/frow`, `blocks/numpad` | `false` | show the F1–F12 row / the numpad block |
-| `keys/kana` | `true` | show the layouts' printed kana legends |
-| `keys/indicators` | `true` | show the Num/Caps/Scroll pills in the title bar |
-| `position/<screen>` | – | window position per screen name |
+everything else - theme, scale, key size, f-row, numpad, sticky modifiers, start at login - is in the tray menu, the settings dialog, or `~/.config/tabletkeyboard/tabletkeyboard.conf`.
 
-`general/theme` from v1 is ignored; the theme is now per light/dark slot.
+## notes
 
-**Sizing for touch.** `keyUnit` is in Qt *logical* pixels, so a HiDPI session
-scales it: on the Let's Note (2880×1920 panel, session scaled 2×) 72 px covers
-2 × 72 physical px ≈ 38 mm, and `keyUnit=36` gives ≈19 mm. The window never
-exceeds 98 % of the screen width — the fit shrinks the keys if a wide layout
-with the numpad and the F-row would not fit. QSettings writes `general/*` into
-the `[%General]` section (`general` would collide with the file's `[General]`
-section) and reads that section back as `General/*`; the loader accepts
-`General/*`, `general/*` and hand-written top-level spellings.
-
-## Layouts and themes
-
-Drop-in files (the `id` must match the file name):
-
-```
-~/.local/share/tabletkeyboard/layouts/*.json
-~/.local/share/tabletkeyboard/themes/*.json
-```
-
-Bundled copies live in `data/` and are also compiled into the binary, so the
-application works uninstalled. Search order: user dir → `/usr/share/tabletkeyboard`
-→ built-in.
-
-- Layout schema and authoring guide: [docs/layout.md](docs/layout.md)
-- Theme schema: [docs/theme.md](docs/theme.md)
-
-You can add a language with no code changes: write `layouts/<id>.json`, run
-`tabletkeyboard --check-layout` on it, and it appears in the language menu.
-
-## How typing works
-
-1. A key tap reaches `KeyStateMachine` (sticky state, layers, modes, language).
-2. It emits a `KeyScript` of keysyms: `[Shift↓, A, Shift↑]` for a sticky shift,
-   `[Ctrl↓, c, Ctrl↑]` for Ctrl+C.
-3. The X11 backend resolves each keysym against the active keyboard map and
-   injects it with `XTestFakeKeyEvent` — the same events a physical keyboard
-   produces, so fcitx5 (XIM or the Qt/GTK modules) sees identical input.
-
-Keysyms the active map cannot produce (for example `Zenkaku_Hankaku` on a US
-map) are sent through a **spare keycode**: an unused keycode is remapped to the
-keysym with every level set the same, so no modifier state can change the
-result. Spares are reused, re-created after an external map reset
-(`XkbMapNotify`), and restored on exit — including on SIGTERM/SIGINT/SIGHUP.
-
-Modifiers are pressed through their real keycodes: the spare-modifier probe
-fails under XKB, so no spare is used for them (`docs/spikes.md`, S2).
-
-## Troubleshooting
-
-- **`no usable layouts/themes found; refusing to start`** — the bundled data is
-  compiled into the binary, so this means the resource is broken (bad build);
-  check the parse errors printed above it.
-- **A ⚠ appears in the title bar** — XTEST is missing on this display
-  (`xdpyinfo | grep -i xtest`). The keyboard cannot inject anything.
-- **No tray icon under Plasma** — Plasma hosts XEmbed tray icons through
-  `xembedsniproxy`: check that it is running (`pgrep -a xembedsniproxy`) and that
-  the tray widget is present. Without any tray the keyboard shows itself at
-  startup so it stays reachable.
-- **No Japanese glyphs** — `fc-list :lang=ja`; pick a font with CJK coverage in
-  the theme's `font_family`.
-- **Tray/Plasma resets the keyboard map** (layout switch) — harmless: the
-  backend re-syncs and re-creates spare keycodes on demand.
-- **Wayland session** — XTEST only reaches XWayland clients; see
-  `docs/wayland.md`.
-
-## Status
-
-Verified end-to-end on the target device (Let's Note CF-QV, Slackware 15.0,
-KDE Plasma 5/X11, fcitx5-mozc): XTEST injection, focusless window and EWMH
-hints under KWin, tray icon, Alt+Tab through KWin, ASCII and Ctrl+C/V in Kate
-and Konsole, and a full Japanese sentence composed and converted purely from the
-OSK. Details and remaining items: `docs/spikes.md` and `docs/test-matrix.md`
-(Firefox/Thunderbird/xterm and touch on the panel are not covered by this
-release).
-
-## License
-
-GPL-2.0-or-later, see [LICENSE](LICENSE).
+- wayland is not supported: xtest only reaches xwayland windows, see [docs/wayland.md](docs/wayland.md).
+- only really tested on my let's note so far; [docs/test-matrix.md](docs/test-matrix.md) has what was and was not covered.
+- gpl-2.0-or-later, see [LICENSE](LICENSE).
