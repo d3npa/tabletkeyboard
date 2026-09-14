@@ -69,6 +69,7 @@ F-row is shown (the gutter row is hidden together with `frow`).
 | `width` | number | `1` | key units (1 unit = the base key) |
 | `sym` | string | – | X keysym name, required for `type: key`; resolved with the keysym table and lint-checked |
 | `shifted` | string | – | keysym sent while Shift is sticky/locked (drawn as a small hint on the key) |
+| `shiftLabel` | string | `shifted`'s character | text painted as that hint; an explicit `""` paints nothing — the JIS `0` key sends `~` but its keycap has no shifted legend |
 | `fn` | string | – | keysym sent while Fn is armed (drawn instead of `label` while Fn is on) |
 | `fnLabel` | string | keysym's character/name | label used for the `fn` keysym |
 | `mod` | string | – | for `type: mod`: `shift`, `ctrl`, `alt`, `super`, `altgr`, `fn` |

@@ -73,6 +73,10 @@ bool parseKeyDef(const QJsonValue &value, const KeysymResolver *resolver, const 
         key.shifted = o.value(QStringLiteral("shifted")).toString();
         if (!key.shifted.isEmpty() && resolver && !resolver->fromName(key.shifted, &key.shiftedCode))
             return fail(error, where + QStringLiteral(": unknown keysym \"%1\"").arg(key.shifted));
+        if (o.contains(QStringLiteral("shiftLabel"))) {
+            key.shiftLabelSet = true;
+            key.shiftLabel = o.value(QStringLiteral("shiftLabel")).toString();
+        }
         key.fn = o.value(QStringLiteral("fn")).toString();
         if (!key.fn.isEmpty() && resolver && !resolver->fromName(key.fn, &key.fnCode))
             return fail(error, where + QStringLiteral(": unknown keysym \"%1\"").arg(key.fn));

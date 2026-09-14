@@ -51,6 +51,11 @@ QString KeyButton::displayLabel() const
 
 QString KeyButton::subLabel() const
 {
+    // An explicit hint always wins, so a layout can blank it (`"shiftLabel": ""`)
+    // for a keycap that prints no shifted legend while the key keeps sending the
+    // shifted keysym.
+    if (key_.shiftLabelSet)
+        return key_.shiftLabel;
     if (key_.shiftedCode == 0)
         return QString();
     QString text = displayTextForKeysym(key_.shiftedCode);

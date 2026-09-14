@@ -79,6 +79,7 @@ private slots:
     void resolvesEveryKeysym();
     void parsesSteppedKeysAndFn();
     void jp106KanaLegends();
+    void jp106ZeroKeyHidesShiftHint();
     void navClusterHasPrintKeys();
     void rejectsMalformedJson();
     void rejectsUnknownKeysym();
@@ -199,7 +200,7 @@ void TestLayout::jp106KanaLegends()
         { QStringLiteral("Z"), QStringLiteral("つ") },
         { QStringLiteral(","), QStringLiteral("ね") },
         { QStringLiteral("/"), QStringLiteral("め") },
-        { QStringLiteral("ろ"), QStringLiteral("ろ") },
+        { QStringLiteral("\\"), QStringLiteral("ろ") },
     };
     for (auto it = expected.constBegin(); it != expected.constEnd(); ++it)
         QCOMPARE(kana.value(it.key()), it.value());
@@ -214,6 +215,22 @@ void TestLayout::jp106KanaLegends()
 
     // The thumb layout is a different arrangement with no photo reference.
     QVERIFY(kanaByLabel(jp, QStringLiteral("simple"), QStringLiteral("main")).isEmpty());
+}
+
+void TestLayout::jp106ZeroKeyHidesShiftHint()
+{
+    LayoutSet jp;
+    QString error;
+    QVERIFY2(load(QStringLiteral("jp106.json"), &jp, &error), qPrintable(error));
+
+    // JIS keycaps print no shifted legend on the 0 key, but the key still sends
+    // the shifted keysym: the painted hint is blanked, not the binding.
+    const KeyDef *zero = findKeyByLabel(jp, QStringLiteral("full"), QStringLiteral("main"),
+                                        QStringLiteral("0"));
+    QVERIFY(zero);
+    QVERIFY(zero->shiftLabelSet);
+    QVERIFY(zero->shiftLabel.isEmpty());
+    QVERIFY(zero->shiftedCode != 0);
 }
 
 void TestLayout::navClusterHasPrintKeys()

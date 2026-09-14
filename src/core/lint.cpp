@@ -143,6 +143,8 @@ QVector<LintIssue> Lint::check(const LayoutSet &set, const KeysymResolver *resol
                             addWarning(&issues, keyPath, QStringLiteral("indicator only applies to type \"key\""));
                         if (!key.kana.isEmpty() && key.type != KeyDef::Key)
                             addWarning(&issues, keyPath, QStringLiteral("kana only applies to type \"key\""));
+                        if (!key.shiftLabel.isEmpty() && key.shifted.isEmpty())
+                            addWarning(&issues, keyPath, QStringLiteral("shiftLabel without shifted"));
                     }
                 }
             }

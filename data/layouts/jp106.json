@@ -39,7 +39,7 @@
                   { "type": "key", "label": "7", "sym": "7", "shifted": "apostrophe", "fn": "F7", "kana": "や" },
                   { "type": "key", "label": "8", "sym": "8", "shifted": "parenleft", "fn": "F8", "kana": "ゆ" },
                   { "type": "key", "label": "9", "sym": "9", "shifted": "parenright", "fn": "F9", "kana": "よ" },
-                  { "type": "key", "label": "0", "sym": "0", "shifted": "asciitilde", "fn": "F10", "kana": "わ" },
+                  { "type": "key", "label": "0", "sym": "0", "shifted": "asciitilde", "shiftLabel": "", "fn": "F10", "kana": "わ" },
                   { "type": "key", "label": "-", "sym": "minus", "shifted": "equal", "fn": "F11", "kana": "ほ" },
                   { "type": "key", "label": "^", "sym": "asciicircum", "shifted": "asciitilde", "fn": "F12", "kana": "へ" },
                   { "type": "key", "label": "¥", "sym": "backslash", "shifted": "bar", "kana": "ー" },
@@ -89,7 +89,7 @@
                   { "type": "key", "label": ",", "sym": "comma", "shifted": "less", "kana": "ね" },
                   { "type": "key", "label": ".", "sym": "period", "shifted": "greater", "kana": "る" },
                   { "type": "key", "label": "/", "sym": "slash", "shifted": "question", "kana": "め" },
-                  { "type": "key", "label": "ろ", "sym": "backslash", "shifted": "underscore", "kana": "ろ" },
+                  { "type": "key", "label": "\\", "sym": "backslash", "shifted": "underscore", "kana": "ろ" },
                   { "type": "mod", "mod": "shift", "label": "Shift", "width": 1.75 }
                 ],
                 [
@@ -251,7 +251,7 @@
                   { "type": "key", "label": "7", "sym": "7", "shifted": "apostrophe" },
                   { "type": "key", "label": "8", "sym": "8", "shifted": "parenleft" },
                   { "type": "key", "label": "9", "sym": "9", "shifted": "parenright" },
-                  { "type": "key", "label": "0", "sym": "0", "shifted": "asciitilde" }
+                  { "type": "key", "label": "0", "sym": "0", "shifted": "asciitilde", "shiftLabel": "" }
                 ],
                 [
                   { "type": "key", "label": "-", "sym": "minus", "shifted": "equal" },

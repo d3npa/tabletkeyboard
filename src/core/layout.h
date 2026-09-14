@@ -22,6 +22,8 @@ struct KeyDef
     quint32 symCode = 0; // resolved keysym
     QString shifted;     // keysym name sent while Shift is sticky/locked
     quint32 shiftedCode = 0;
+    QString shiftLabel;         // painted hint for `shifted`, verbatim when set
+    bool shiftLabelSet = false; // `shiftLabel` was given (empty means: paint none)
     QString fn;          // keysym name sent while the OSK-local Fn modifier is armed
     quint32 fnCode = 0;
     QString fnLabel;     // label shown instead of `label` while Fn is armed
